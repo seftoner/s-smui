@@ -130,23 +130,91 @@ export const PlaygroundApp: React.FC = () => {
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
                     <Box sx={{ flex: '1 1 500px', minWidth: '300px' }}>
                         <ComponentSection title="Buttons">
-                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 2 }}>
-                                <Button variant="contained" color="primary">Contained Primary</Button>
-                                <Button variant="outlined" color="primary">Outlined Primary</Button>
-                                <Button variant="text" color="primary">Text Primary</Button>
+                            {/* Contained Buttons - All Sizes */}
+                            <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>Contained Buttons</Typography>
+                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 3 }}>
+                                <Button variant="contained" color="primary" size="large">Label</Button>
+                                <Button variant="contained" color="primary" size="medium">Label</Button>
+                                <Button variant="contained" color="primary" size="small">Label</Button>
                             </Box>
-                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 2 }}>
+
+                            {/* Outlined Buttons - All Sizes */}
+                            <Typography variant="h6" gutterBottom>Outlined Buttons</Typography>
+                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 3 }}>
+                                <Button variant="outlined" color="primary" size="large">Large (15px)</Button>
+                                <Button variant="outlined" color="primary" size="medium">Medium (14px)</Button>
+                                <Button variant="outlined" color="primary" size="small">Small (13px)</Button>
+                            </Box>
+
+                            {/* Text Buttons - All Sizes */}
+                            <Typography variant="h6" gutterBottom>Text Buttons</Typography>
+                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 3 }}>
+                                <Button variant="text" color="primary" size="large">Large (15px)</Button>
+                                <Button variant="text" color="primary" size="medium">Medium (14px)</Button>
+                                <Button variant="text" color="primary" size="small">Small (13px)</Button>
+                            </Box>
+
+                            {/* Color Variants */}
+                            <Typography variant="h6" gutterBottom>Color Variants</Typography>
+                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 3 }}>
+                                <Button variant="contained" color="primary">Primary</Button>
                                 <Button variant="contained" color="secondary">Secondary</Button>
                                 <Button variant="contained" color="error">Error</Button>
                                 <Button variant="contained" color="warning">Warning</Button>
                                 <Button variant="contained" color="info">Info</Button>
                                 <Button variant="contained" color="success">Success</Button>
                             </Box>
+
+                            {/* Icon Buttons - All Sizes & Colors */}
+                            <Typography variant="h6" gutterBottom>Icon Button Sizes</Typography>
+                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 3, alignItems: 'center' }}>
+                                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
+                                    <IconButton size="large"><Home /></IconButton>
+                                    <Typography variant="caption">Large (48px)</Typography>
+                                </Box>
+                                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
+                                    <IconButton size="medium"><Home /></IconButton>
+                                    <Typography variant="caption">Medium (40px)</Typography>
+                                </Box>
+                                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
+                                    <IconButton size="small"><Home /></IconButton>
+                                    <Typography variant="caption">Small (32px)</Typography>
+                                </Box>
+                                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
+                                    <IconButton size="xsmall"><Home /></IconButton>
+                                    <Typography variant="caption">X-Small (24px)</Typography>
+                                </Box>
+                            </Box>
+
+                            {/* Icon Button Colors */}
+                            <Typography variant="h6" gutterBottom>Icon Button Colors</Typography>
+                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 3, alignItems: 'center' }}>
+                                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
+                                    <IconButton size="medium"><Home /></IconButton>
+                                    <Typography variant="caption">Default</Typography>
+                                </Box>
+                                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
+                                    <IconButton color="primary" size="medium"><Home /></IconButton>
+                                    <Typography variant="caption">Primary</Typography>
+                                </Box>
+
+                                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
+                                    <IconButton color="error" size="medium"><Delete /></IconButton>
+                                    <Typography variant="caption">Error</Typography>
+                                </Box>
+                            </Box>
+
+
+
+                            {/* Disabled States */}
+                            <Typography variant="h6" gutterBottom>Disabled States</Typography>
                             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-                                <Button variant="contained" disabled>Disabled</Button>
-                                <Button variant="outlined" disabled>Disabled Outlined</Button>
-                                <IconButton color="primary"><Home /></IconButton>
-                                <IconButton color="error"><Delete /></IconButton>
+                                <Button variant="contained" disabled size="large">Disabled Large</Button>
+                                <Button variant="contained" disabled size="medium">Disabled Medium</Button>
+                                <Button variant="contained" disabled size="small">Disabled Small</Button>
+                                <Button variant="outlined" disabled size="medium">Disabled Outlined</Button>
+                                <Button variant="text" disabled size="medium">Disabled Text</Button>
+                                <IconButton disabled size="medium"><Home /></IconButton>
                             </Box>
                         </ComponentSection>
                     </Box>
