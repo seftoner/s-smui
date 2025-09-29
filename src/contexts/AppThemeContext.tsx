@@ -1,7 +1,7 @@
-import React, { createContext, useContext } from 'react';
+import { createContext, useContext } from 'react';
 import type { ReactNode } from 'react';
 import { useLocation } from 'react-router-dom';
-import { surfaceColors } from '../theme';
+import { useTheme } from '@mui/material/styles';
 
 interface AppTheme {
     sidebarBackgroundColor: string;
@@ -15,42 +15,38 @@ interface AppThemeContextType {
 
 const AppThemeContext = createContext<AppThemeContextType | undefined>(undefined);
 
-// App-specific theme configurations
-const APP_THEMES: Record<string, AppTheme> = {
-    '/chat': {
-        sidebarBackgroundColor: surfaceColors.surface.ai_2,
-        pageBackgroundColor: surfaceColors.surface.ai_1,
-        isSpecialTheme: true,
-    },
-    // Default theme for all other apps
-    default: {
-        sidebarBackgroundColor: surfaceColors.surface[2],
-        pageBackgroundColor: surfaceColors.surface[0],
-        isSpecialTheme: false,
-    },
-};
-
 interface AppThemeProviderProps {
     children: ReactNode;
 }
 
-export const AppThemeProvider: React.FC<AppThemeProviderProps> = ({ children }) => {
+export function AppThemeProvider({ children }: AppThemeProviderProps) {
     const location = useLocation();
+    const theme = useTheme();
+
+    // App-specific theme configurations using theme palette directly
+    const APP_THEMES: Record<string, AppTheme> = {
+        '/chat': {
+            sidebarBackgroundColor: (theme.palette as any).background.surface_ai_2,
+            pageBackgroundColor: (theme.palette as any).background.surface_ai_1,
+            isSpecialTheme: true,
+        },
+        // Default theme for all other apps
+        default: {
+            sidebarBackgroundColor: (theme.palette as any).background.surface_2,
+            pageBackgroundColor: (theme.palette as any).background.surface_0,
+            isSpecialTheme: false,
+        },
+    };
 
     // Determine current theme based on route
     const currentTheme = APP_THEMES[location.pathname] || APP_THEMES.default;
-
-    // Debug: Log current route and theme
-    console.log('Current pathname:', location.pathname);
-    console.log('Current theme:', currentTheme);
-    console.log('Available themes:', Object.keys(APP_THEMES));
 
     return (
         <AppThemeContext.Provider value={{ currentTheme }}>
             {children}
         </AppThemeContext.Provider>
     );
-};
+}
 
 export const useAppTheme = (): AppThemeContextType => {
     const context = useContext(AppThemeContext);

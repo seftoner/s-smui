@@ -11,7 +11,8 @@ import {
   SearchApp,
   TaskManagementApp,
   DocumentsApp,
-  AIChatApp
+  AIChatApp,
+  PlaygroundApp
 } from './apps';
 import HomeApp from './apps/home/HomeApp';
 import VariationCentreApp from './apps/variation-centre/VariationCentreApp';
@@ -38,6 +39,7 @@ function App() {
                 <Route path="/documents" element={<DocumentsApp />} />
                 <Route path="/variation" element={<VariationCentreApp />} />
                 <Route path="/chat" element={<AIChatApp />} />
+                <Route path="/playground" element={<PlaygroundApp />} />
                 <Route path="/more-apps" element={<MoreAppsApp />} />
               </Routes>
             </Layout>

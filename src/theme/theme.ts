@@ -4,70 +4,516 @@ import type { ThemeOptions } from '@mui/material/styles';
 // Figma Design System Color Palette - Light Mode
 const lightPalette = {
   primary: {
-    main: '#92722A',
-    dark: '#6C4527',
-    light: '#CBA344',
-    contrastText: '#F7F7F7',
+    main: '#3b6bf6',
+    dark: '#163bf5',
+    light: '#6196f8',
+    contrastText: '#f7f7f7',
+    // State colors from Figma
+    states: {
+      hover: '#286cff0f',
+      selected: '#286cff1a',
+      focus: '#286cff1f',
+      focusVisible: '#286cff80',
+      outlinedBorder: '#286cff80',
+    },
   },
   secondary: {
     main: '#232528',
-    dark: '#1B1D21',
-    light: '#3E4045',
-    contrastText: '#FFFFFF',
+    dark: '#1b1d21',
+    light: '#3e4045',
+    contrastText: '#ffffff',
+    // State colors from Figma
+    states: {
+      hover: '#2325280f',
+      selected: '#23252814',
+      focus: '#23252814',
+      focusVisible: '#23252880',
+      outlinedBorder: '#8a8b8d',
+    },
   },
   error: {
-    main: '#D83731',
-    dark: '#95231F',
-    light: '#F47A75',
-    contrastText: '#FFFFFF',
+    main: '#d83731',
+    dark: '#95231f',
+    light: '#f47a75',
+    contrastText: '#ffffff',
+    // State colors from Figma
+    states: {
+      hover: '#d32f2f0a',
+      selected: '#d32f2f14',
+      focusVisible: '#d32f2f4d',
+      outlinedBorder: '#d32f2f80',
+    },
   },
   warning: {
-    main: '#EF6C00',
-    contrastText: '#FFFFFF',
+    main: '#ef6c00',
+    dark: '#e65100',
+    light: '#ff9800',
+    contrastText: '#ffffff',
+    // State colors from Figma
+    states: {
+      hover: '#ef6c000a',
+      selected: '#ef6c0014',
+      focusVisible: '#ef6c004d',
+      outlinedBorder: '#ef6c0080',
+    },
   },
   info: {
-    main: '#0073AB',
-    dark: '#224F71',
-    light: '#00ABEB',
-    contrastText: '#FFFFFF',
+    main: '#0073ab',
+    dark: '#224f71',
+    light: '#00abeb',
+    contrastText: '#ffffff',
+    // State colors from Figma
+    states: {
+      hover: '#0288d10a',
+      selected: '#0288d114',
+      focusVisible: '#0288d14d',
+      outlinedBorder: '#0288d180',
+    },
   },
   success: {
-    main: '#3F8E50',
-    dark: '#24432B',
-    light: '#A0D5AB',
-    contrastText: '#FFFFFF',
+    main: '#3f8e50',
+    dark: '#24432b',
+    light: '#a0d5ab',
+    contrastText: '#ffffff',
+    // State colors from Figma
+    states: {
+      hover: '#2e7d320a',
+      selected: '#2e7d3214',
+      focusVisible: '#2e7d324d',
+      outlinedBorder: '#2e7d3280',
+    },
   },
   background: {
-    default: '#F2F2F2', // surface_0
-    paper: '#FFFFFF',    // surface_3
+    default: '#ffffff',
+    paper: '#ffffff',
+    surface_0: '#f2f2f2',
+    surface_1: '#f7f7f7',
+    surface_2: '#fcfcfc',
+    surface_3: '#ffffff',
+    surface_ai_1: '#ffffff',
+    surface_ai_2: '#f9f9f9',
+    // Background state colors from Figma
+    states: {
+      selected: '#c1e8fd',
+      hover: '#def3ff',
+      focusOutlined: '#def3ff',
+      disabled: '#e1e3e5',
+    },
   },
   text: {
-    primary: '#1B1D21',
-    secondary: 'rgba(27, 29, 33, 0.7)',
-    disabled: 'rgba(27, 29, 33, 0.3)',
+    primary: '#1b1d21',
+    secondary: '#1b1d21b2',
+    disabled: '#1b1d214d',
+    link: '#3b6bf6',
+    // Text state colors from Figma
+    states: {
+      hover: '#1b1d210a',
+      selected: '#1b1d2114',
+      focus: '#1b1d211f',
+      focusVisible: '#1b1d214d',
+    },
   },
-  divider: 'rgba(27, 29, 33, 0.12)',
+  divider: '#1b1d211f',
+    
   action: {
-    active: 'rgba(14, 15, 18, 0.6)',
-    hover: 'rgba(14, 15, 18, 0.05)',
-    selected: 'rgba(14, 15, 18, 0.15)',
-    focus: 'rgba(14, 15, 18, 0.2)',
-    disabled: 'rgba(14, 15, 18, 0.38)',
-    disabledBackground: 'rgba(14, 15, 18, 0.1)',
+    active: '#0e0f1299',
+    hover: '#0e0f120d',
+    hoverOpacity: 0.08,
+    selected: '#0e0f1226',
+    selectedOpacity: 0.15,
+    disabled: '#0e0f1261',
+    disabledOpacity: 0.38,
+    disabledBackground: '#0e0f121a',
+    focus: '#0e0f1233',
+    focusOpacity: 0.20,
+    activatedOpacity: 0.60,
   },
+  
+  // Component-specific colors from Figma tokens
+  components: {
+    listItem: {
+      iconEnabled: '#4c4f57',
+      iconDisabled: '#c3c6ca',
+    },
+    chip: {
+      hover: '#effaff',
+      focused: '#def3ff',
+      disabled: '#f7f7f7',
+      pressed: '#def3ff',
+      filled: {
+        default: '#e1e3e5',
+        hovered: '#effaff',
+        focus: '#effaff',
+      },
+      outline: {
+        enabled: '#c3c6ca',
+        hovered: '#2ccaff',
+        focused: '#3b6bf6',
+        disabled: '#f7f7f7',
+        pressed: '#0090d4',
+      },
+      workStatus: {
+        todo: '#e1e3e5',
+        inProgress: '#f1ecd2',
+      },
+      filterOperator: {
+        or: '#ffcc80',
+        and: '#c1e8fd',
+      },
+    },
+    alert: {
+      warning: {
+        color: '#6c4527',
+        background: '#f9f7ee',
+      },
+      info: {
+        color: '#224f71',
+        background: '#def3ff',
+      },
+      success: {
+        color: '#24432b',
+        background: '#e4f4e7',
+      },
+      error: {
+        color: '#95231f',
+        background: '#fef2f2',
+      },
+    },
+    avatar: {
+      fill: '#7a7e85',
+      error: {
+        color: '#95231f',
+        background: '#fdeded',
+      },
+    },
+    input: {
+      enabled: '#e1e3e5',
+      hover: '#6196f8',
+      background: '#ffffff',
+    },
+    switch: {
+      knobFillEnabled: '#f7f7f7',
+      slideFill: '#000000',
+      knobFillDisabled: '#e1e3e5',
+    },
+    fab: {
+      activeStroke: '#00000061',
+    },
+    rating: {
+      enabled: '#0000003b',
+      active: '#ffb400',
+    },
+    snackbar: {
+      fill: '#3e4045',
+    },
+    tooltip: {
+      fill: '#3e4045',
+    },
+    backdrop: {
+      fill: '#00000080',
+    },
+    appbar: {
+      default: '#e1e3e5',
+    },
+    breadcrumbs: {
+      collapse: '#e1e3e5',
+    },
+    stepper: {
+      connector: '#7a7e85',
+    },
+    taskCard: {
+      enabled: '#e1e3e5',
+    },
+    icon: {
+      default: '#232528',
+    },
+    attachmentCard: {
+      hover: '#286cff0f',
+      selected: '#286cff1a',
+    },
+    scrollbar: {
+      default: '#c3c6ca',
+      hover: '#7a7e85',
+    },
+    elevation: {
+      outlined: '#e0e0e0',
+      inputShadow: '#9670261f',
+      inputShadow2: '#a67e301a',
+      inputShadow3: '#644b1b14',
+    },
+  },
+  
+  // Common color states from Figma
+  common: {
+    black: {
+      main: '#000000',
+    },
+    white: {
+      main: '#ffffff',
+    },
+  },
+
 };
 
-// Custom Surface Colors System
-const surfaceColors = {
-  surface: {
-    0: '#F2F2F2', // surface_0 - Default background (lightest)
-    1: '#F7F7F7', // surface_1 - Slightly elevated
-    2: '#FCFCFC', // surface_2 - More elevated
-    3: '#FFFFFF', // surface_3 - Highest elevation (paper)
-    4: '#131416', // surface_4 - Dark elevated (for dark mode compatibility)
-    5: '#121317', // surface_5 - Darkest surface
-    ai_1: '#FFFFFF', // surface_ai_1 - AI specific surface 1
-    ai_2: '#F9F9F9', // surface_ai_2 - AI specific surface 2
+// Figma Design System Color Palette - Dark Mode
+const darkPalette = {
+  primary: {
+    main: '#81c1ff',
+    dark: '#6196f8',
+    light: '#d8ecfd',
+    contrastText: '#1b1d21',
+    // State colors from Figma
+    states: {
+      hover: '#6196f80f',
+      selected: '#6196f829',
+      focus: '#6196f81f',
+      focusVisible: '#6196f880',
+      outlinedBorder: '#6196f880',
+    },
+  },
+  secondary: {
+    main: '#c3c6ca',
+    dark: '#9fa2a8',
+    light: '#f7f7f7',
+    contrastText: '#000000',
+    // State colors from Figma
+    states: {
+      hover: '#6196f80f',
+      selected: '#89acff29',
+      focus: '#89acff14',
+      focusVisible: '#6b6c70',
+      outlinedBorder: '#6b6c70',
+    },
+  },
+  error: {
+    main: '#d83731',
+    dark: '#b52520',
+    light: '#faaaa7',
+    contrastText: '#ffffff',
+    // State colors from Figma
+    states: {
+      hover: '#f4433614',
+      selected: '#f4433629',
+      focusVisible: '#f443364d',
+      outlinedBorder: '#f4433680',
+    },
+  },
+  warning: {
+    main: '#e65100',
+    dark: '#e65100',
+    light: '#ffb74d',
+    contrastText: '#ffffff',
+    // State colors from Figma
+    states: {
+      hover: '#ffa72614',
+      selected: '#ffa72629',
+      focusVisible: '#ffa7264d',
+      outlinedBorder: '#ffa72680',
+    },
+  },
+  info: {
+    main: '#00608d',
+    dark: '#14324b',
+    light: '#2ccaff',
+    contrastText: '#ffffff',
+    // State colors from Figma
+    states: {
+      hover: '#29b6f614',
+      selected: '#29b6f629',
+      focusVisible: '#29b6f64d',
+      outlinedBorder: '#29b6f680',
+    },
+  },
+  success: {
+    main: '#3f8e50',
+    dark: '#24432b',
+    light: '#a0d5ab',
+    contrastText: '#ffffff',
+    // State colors from Figma
+    states: {
+      hover: '#66bb6a14',
+      selected: '#66bb6a29',
+      focusVisible: '#66bb6a4d',
+      outlinedBorder: '#66bb6a80',
+    },
+  },
+  background: {
+    default: '#232529',
+    paper: '#232529',
+    surface_0: '#121317',
+    surface_1: '#131416',
+    surface_2: '#1c1e21',
+    surface_3: '#232529',
+    surface_ai_1: '#212121',
+    surface_ai_2: '#181818',
+    // Background state colors from Figma
+    states: {
+      selected: '#5d3b26',
+      hover: '#6c4527',
+      focusOutlined: '#232528',
+      disabled: '#232528',
+    },
+  },
+  text: {
+    primary: '#f7f7f7',
+    secondary: '#f7f7f7b2',
+    disabled: '#f7f7f761',
+    link: '#81c1ff',
+    // Text state colors from Figma
+    states: {
+      hover: '#f7f7f714',
+      selected: '#f7f7f729',
+      focus: '#f7f7f71f',
+      focusVisible: '#f7f7f74d',
+    },
+  },
+  divider: '#ffffff1f',
+  action: {
+    active: '#ffffff99',
+    hover: '#ffffff0d',
+    selected: '#ffffff26',
+    focus: '#ffffff33',
+    focusStroke: '#ffffff33',
+    disabled: '#ffffff61',
+    disabledBackground: '#ffffff1a',
+  },
+  
+  // Component-specific colors from Figma tokens - Dark Mode
+  components: {
+    listItem: {
+      iconEnabled: '#c3c6ca',
+      iconDisabled: '#4c4f57',
+    },
+    chip: {
+      hover: '#3e4045',
+      focused: '#3e4045',
+      disabled: '#4c4f57',
+      pressed: '#232528',
+      filled: {
+        default: '#4c4f57',
+        hovered: '#ffffff33',
+        focus: '#ffffff40',
+      },
+      outline: {
+        enabled: '#7a7e85',
+        hovered: '#163bf5',
+        focused: '#81c1ff',
+        disabled: '#4c4f57',
+        pressed: '#60646c',
+      },
+      workStatus: {
+        todo: '#3e4045',
+        inProgress: '#5d3b26',
+      },
+      filterOperator: {
+        or: '#6f3a1a',
+        and: '#00608d',
+      },
+    },
+    alert: {
+      warning: {
+        color: '#e2c58c',
+        background: '#361e12',
+      },
+      info: {
+        color: '#c1e8fd',
+        background: '#14324b',
+      },
+      success: {
+        color: '#cae8cf',
+        background: '#0f2415',
+      },
+      error: {
+        color: '#faaaa7',
+        background: '#430e0c',
+      },
+    },
+    avatar: {
+      fill: '#4c4f57',
+      error: {
+        color: '#f4c7c7',
+        background: '#160b0b',
+      },
+    },
+    input: {
+      enabled: '#60646c',
+      hover: '#d8ecfd',
+      background: '#232529',
+    },
+    switch: {
+      knobFillEnabled: '#9fa2a8',
+      slideFill: '#ffffff61',
+      knobFillDisabled: '#4c4f57',
+    },
+    fab: {
+      activeStroke: '#9fa2a8',
+    },
+    rating: {
+      enabled: '#ffffff3b',
+      active: '#ffb400',
+    },
+    snackbar: {
+      fill: '#2c2c2c',
+    },
+    tooltip: {
+      fill: '#f7f7f7',
+    },
+    backdrop: {
+      fill: '#00000080',
+    },
+    appbar: {
+      default: '#131416',
+    },
+    breadcrumbs: {
+      collapse: '#4c4f57',
+    },
+    stepper: {
+      connector: '#4c4f57',
+    },
+    taskCard: {
+      enabled: '#232528',
+    },
+    icon: {
+      default: '#f7f7f7',
+    },
+    attachmentCard: {
+      hover: '#ffffff0d',
+      selected: '#6196f829',
+    },
+    scrollbar: {
+      default: '#60646c',
+      hover: '#9fa2a8',
+    },
+    elevation: {
+      outlined: '#ffffff1f',
+      inputShadow: '#05063680',
+      inputShadow2: '#08112780',
+      inputShadow3: '#00000014',
+    },
+  },
+  
+  // Common color states from Figma - Dark Mode
+  common: {
+    black: {
+      main: '#000000',
+      states: {
+        hover: '#00000014',
+        selected: '#00000029',
+        focus: '#0000001f',
+        focusVisible: '#0000004d',
+        outlinedBorder: '#00000080',
+      },
+    },
+    white: {
+      main: '#ffffff',
+      states: {
+        hover: '#ffffff14',
+        selected: '#ffffff29',
+        focus: '#ffffff1f',
+        focusVisible: '#ffffff4d',
+        outlinedBorder: '#ffffff80',
+      },
+    },
   },
 };
 
@@ -162,25 +608,7 @@ const typography = {
 
 // Figma Design System Component Overrides
 const components = {
-  MuiCssBaseline: {
-    styleOverrides: {
-      html: {
-        height: '100%',
-        width: '100%',
-      },
-      body: {
-        height: '100%',
-        width: '100%',
-        margin: 0,
-        padding: 0,
-      },
-      '#root': {
-        height: '100%',
-        width: '100%',
-        display: 'flex',
-      },
-    },
-  },
+
   MuiButton: {
     styleOverrides: {
       root: {
@@ -193,14 +621,14 @@ const components = {
       contained: {
         boxShadow: 'none',
         '&:hover': {
-          boxShadow: '0px 2px 4px rgba(146, 114, 42, 0.12)',
+          boxShadow: '0px 2px 4px rgba(59, 107, 246, 0.12)',
         },
       },
       outlined: {
-        borderColor: 'rgba(146, 114, 42, 0.5)',
+        borderColor: 'rgba(59, 107, 246, 0.5)',
         '&:hover': {
-          borderColor: '#92722A',
-          backgroundColor: 'rgba(146, 114, 42, 0.06)',
+          borderColor: '#3b6bf6',
+          backgroundColor: 'rgba(59, 107, 246, 0.06)',
         },
       },
     },
@@ -226,51 +654,101 @@ const components = {
   },
   MuiTextField: {
     styleOverrides: {
-      root: {
+      root: ({ theme }: { theme: any }) => ({
         '& .MuiOutlinedInput-root': {
           borderRadius: 8, // cornerRadius-2
           '& fieldset': {
-            borderColor: '#E1E3E5',
+            borderColor: theme.palette.components?.input.enabled,
           },
           '&:hover fieldset': {
-            borderColor: '#CBA344',
+            borderColor: theme.palette.primary.light
           },
           '&.Mui-focused fieldset': {
-            borderColor: '#92722A',
+            borderColor: theme.palette.primary.main,
+          },
+          '&.Mui-disabled fieldset': {
+            borderColor: theme.palette.action.disabled,
           },
         },
-      },
+      }),
     },
   },
   MuiChip: {
     styleOverrides: {
-      root: {
+      root: ({ theme }: { theme: any }) => ({
         borderRadius: 16, // cornerRadius-3
         fontSize: '0.875rem',
         height: 32,
-      },
-      outlined: {
-        borderColor: '#C3C6CA',
         '&:hover': {
-          borderColor: '#CBA344',
+          backgroundColor: theme.palette.components?.chip.hover,
         },
+        '&.Mui-focusVisible': {
+          backgroundColor: theme.palette.components?.chip.focused,
+        },
+        '&.Mui-disabled': {
+          backgroundColor: theme.palette.components?.chip.disabled,
+        },
+      }),
+      filled: ({ theme }: { theme: any }) => ({
+        backgroundColor: theme.palette.grey[300],
+        '&:hover': {
+          backgroundColor: theme.palette.components?.chip.filled.hovered,
+        },
+        '&.Mui-focusVisible': {
+          backgroundColor: theme.palette.components?.chip.filled.focus,
+        },
+      }),
+      outlined: ({ theme }: { theme: any }) => ({
+        borderColor: theme.palette.components?.chip.outline.enabled,
+        '&:hover': {
+          borderColor: theme.palette.components?.chip.outline.hovered,
+        },
+        '&.Mui-focusVisible': {
+          borderColor: theme.palette.components?.chip.outline.focused,
+        },
+        '&.Mui-disabled': {
+          borderColor: theme.palette.components?.chip.outline.disabled,
+        },
+      }),
+    },
+  },
+  MuiListItemButton: {
+    styleOverrides: {
+      root: {
+        borderRadius: 8,
       },
+    },
+  },
+  MuiListItemIcon: {
+    styleOverrides: {
+      root: ({ theme }: { theme: any }) => ({
+        minWidth: 32,
+        color: theme.palette.components?.listItem.iconEnabled,
+      }),
     },
   },
   MuiListItem: {
     styleOverrides: {
-      root: {
+      root: ({ theme }: { theme: any }) => ({
         borderRadius: 8, // cornerRadius-2
         '&:hover': {
-          backgroundColor: '#F9F7EE',
+          backgroundColor: theme.palette.action.hover,
         },
         '&.Mui-selected': {
-          backgroundColor: '#F1ECD2',
+          backgroundColor: theme.palette.action.selected,
           '&:hover': {
-            backgroundColor: '#F1ECD2',
+            backgroundColor: theme.palette.action.selected,
           },
         },
-      },
+        '&.Mui-focusVisible': {
+          backgroundColor: theme.palette.action.focus,
+          outline: `2px solid ${theme.palette.primary.main}`,
+        },
+        '&.Mui-disabled': {
+          backgroundColor: theme.palette.action.disabledBackground,
+          color: theme.palette.action.disabled,
+        },
+      }),
     },
   },
   MuiListSubheader: {
@@ -283,22 +761,22 @@ const components = {
   },
   MuiAlert: {
     styleOverrides: {
-      standardWarning: {
-        backgroundColor: '#F9F7EE',
-        color: '#6C4527',
-      },
-      standardInfo: {
-        backgroundColor: '#DEF3FF',
-        color: '#224F71',
-      },
-      standardSuccess: {
-        backgroundColor: '#E4F4E7',
-        color: '#24432B',
-      },
-      standardError: {
-        backgroundColor: '#FEF2F2',
-        color: '#95231F',
-      },
+      standardWarning: ({ theme }: { theme: any }) => ({
+        backgroundColor: theme.palette.components?.alert.warning.background,
+        color: theme.palette.components?.alert.warning.color,
+      }),
+      standardInfo: ({ theme }: { theme: any }) => ({
+        backgroundColor: theme.palette.components?.alert.info.background,
+        color: theme.palette.components?.alert.info.color,
+      }),
+      standardSuccess: ({ theme }: { theme: any }) => ({
+        backgroundColor: theme.palette.components?.alert.success.background,
+        color: theme.palette.components?.alert.success.color,
+      }),
+      standardError: ({ theme }: { theme: any }) => ({
+        backgroundColor: theme.palette.components?.alert.error.background,
+        color: theme.palette.components?.alert.error.color,
+      }),
     },
   },
   MuiFab: {
@@ -308,19 +786,24 @@ const components = {
       },
     },
   },
+  MuiTooltip: {
+    styleOverrides: {
+      tooltip: ({ theme }: { theme: any }) => ({
+        backgroundColor: theme.palette.components?.tooltip.fill,
+        color: theme.palette.primary.contrastText,
+      }),
+      arrow: ({ theme }: { theme: any }) => ({
+        color: theme.palette.components?.tooltip.fill,
+      }),
+    },
+  },
 };
 
-const themeOptions: ThemeOptions = {
+const themeOptions = (mode: 'light' | 'dark' = 'light'): ThemeOptions => ({
   direction: 'rtl', // Enable RTL direction
   palette: {
-    ...lightPalette,
-    // Extend palette with custom surface colors
-    background: {
-      default: surfaceColors.surface[0], // surface_0
-      paper: surfaceColors.surface[3],   // surface_3
-    },
-    // Add surface colors directly to palette
-    surface: surfaceColors.surface,
+    mode,
+    ...(mode === 'light' ? lightPalette : darkPalette),
   } as any, // Type assertion to allow custom properties
   typography,
   components,
@@ -337,11 +820,11 @@ const themeOptions: ThemeOptions = {
       xl: 1600,
     },
   },
-};
+});
 
-export const theme = createTheme(themeOptions);
+export const createAppTheme = (mode: 'light' | 'dark' = 'light') => createTheme(themeOptions(mode));
 
-// Export surface colors for direct usage
-export { surfaceColors };
+// Export default light theme for backwards compatibility
+export const theme = createAppTheme('light');
 
 export default theme;

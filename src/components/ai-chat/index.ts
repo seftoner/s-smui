@@ -3,6 +3,10 @@ export { PromptInput } from './PromptInput';
 export { WelcomeSection } from './WelcomeSection';
 export { ChatHistorySidebar } from './ChatHistorySidebar';
 
+// Dialog components
+export { RenameChatDialog } from './RenameChatDialog';
+export { DeleteChatDialog } from './DeleteChatDialog';
+
 // Internal sidebar components (used only within ChatHistorySidebar)
 export { ProjectItem } from './ProjectItem';
 export { ChatHistoryItem } from './ChatHistoryItem';

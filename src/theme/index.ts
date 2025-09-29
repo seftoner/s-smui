@@ -1,2 +1,2 @@
-export { default as theme, surfaceColors } from './theme';
+export { default as theme, createAppTheme } from './theme';
 export type { Theme } from '@mui/material/styles';

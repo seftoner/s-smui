@@ -3,6 +3,7 @@ import {
     ListItem,
     ListItemText,
     ListItemIcon,
+    ListItemButton,
 } from '@mui/material';
 import {
     FolderIcon,
@@ -31,16 +32,12 @@ export const ProjectItem: React.FC<ProjectItemProps> = ({
     };
 
     return (
-        <ListItem
+        <ListItemButton
             key={project.id}
             component="div"
             onClick={handleClick}
-            sx={{
-                cursor: 'pointer',
-                borderRadius: 2,
-            }}
         >
-            <ListItemIcon sx={{ minWidth: 32, color: 'text.primary' }}>
+            <ListItemIcon>
                 {project.isOpen ? (
                     <FolderOpenIcon size={24} weight="regular" />
                 ) : (
@@ -54,7 +51,7 @@ export const ProjectItem: React.FC<ProjectItemProps> = ({
                     overflow: 'hidden',
                 }}
             />
-        </ListItem>
+        </ListItemButton>
     );
 };
 

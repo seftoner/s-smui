@@ -1,8 +1,8 @@
 import React from 'react';
 import {
-    ListItem,
     ListItemText,
     ListItemIcon,
+    ListItemButton,
 } from '@mui/material';
 import {
     FolderPlusIcon,
@@ -16,15 +16,11 @@ export const NewProjectButton: React.FC<NewProjectButtonProps> = ({
     onClick,
 }) => {
     return (
-        <ListItem
+        <ListItemButton
             component="div"
             onClick={onClick}
-            sx={{
-                cursor: 'pointer',
-                borderRadius: 2,
-            }}
         >
-            <ListItemIcon sx={{ minWidth: 32, color: 'text.primary' }}>
+            <ListItemIcon>
                 <FolderPlusIcon size={24} weight="regular" />
             </ListItemIcon>
             <ListItemText
@@ -34,7 +30,7 @@ export const NewProjectButton: React.FC<NewProjectButtonProps> = ({
                     overflow: 'hidden',
                 }}
             />
-        </ListItem>
+        </ListItemButton>
     );
 };
 
