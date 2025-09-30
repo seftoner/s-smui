@@ -6,29 +6,23 @@ export const buttonOverrides = {
         borderRadius: 8, // cornerRadius-2
         textTransform: 'none' as const,
         fontFamily: 'Noto Kufi Arabic, Helvetica, Arial, sans-serif',
-        fontWeight: 500,
+        
         fontSize: 14,
         lineHeight: 1.714,
       },
       sizeLarge: {
-        fontFamily: 'Noto Kufi Arabic, Helvetica, Arial, sans-serif',
-        fontWeight: 500,
         fontSize: 15, 
         lineHeight: 1.733,
         height: 48,
         padding: '8px 22px',
       },
       sizeMedium: {
-        fontFamily: 'Noto Kufi Arabic, Helvetica, Arial, sans-serif',
-        fontWeight: 500,
         fontSize: 14,
         lineHeight: 1.714,
         height: 40,
         padding: '4px 16px',
       },
       sizeSmall: {
-        fontFamily: 'Noto Kufi Arabic, Helvetica, Arial, sans-serif',
-        fontWeight: 500,
         fontSize: 13,
         lineHeight: 1.692,        
         height: 22,
