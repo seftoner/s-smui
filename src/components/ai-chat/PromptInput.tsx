@@ -100,16 +100,6 @@ export const PromptInput: React.FC<PromptInputProps> = ({
         return theme.palette.background.paper;
     };
 
-    const getSendButtonColor = () => {
-        if (!value.trim() || disabled) return theme.palette.action.disabled;
-        return theme.palette.primary.main;
-    };
-
-    const getSendButtonTextColor = () => {
-        if (!value.trim() || disabled) return theme.palette.action.disabled;
-        return theme.palette.primary.contrastText;
-    };
-
     return (
         <Box>
             {/* Main Input Container */}
@@ -250,24 +240,14 @@ export const PromptInput: React.FC<PromptInputProps> = ({
                             {/* Send Button */}
                             <IconButton
                                 onClick={onSend}
+                                color='primary'
                                 disabled={!value.trim() || disabled}
                                 size="small"
                                 sx={{
-                                    backgroundColor: getSendButtonColor(),
-                                    color: getSendButtonTextColor(),
-                                    width: 32,
-                                    height: 32,
                                     transition: 'all 0.2s ease-in-out',
                                     '&:hover': {
-                                        backgroundColor: value.trim() && !disabled ?
-                                            theme.palette.primary.dark :
-                                            theme.palette.action.disabled,
                                         transform: value.trim() && !disabled ? 'scale(1.05)' : 'none',
-                                    },
-                                    '&.Mui-disabled': {
-                                        backgroundColor: theme.palette.action.disabled,
-                                        color: theme.palette.action.disabled,
-                                    },
+                                    }
                                 }}
                             >
                                 <PaperPlaneTiltIcon size={20} weight="fill" />
@@ -283,21 +263,10 @@ export const PromptInput: React.FC<PromptInputProps> = ({
                                 disabled={!value.trim() || disabled}
                                 size="small"
                                 sx={{
-                                    backgroundColor: getSendButtonColor(),
-                                    color: getSendButtonTextColor(),
-                                    width: 32,
-                                    height: 32,
                                     transition: 'all 0.2s ease-in-out',
                                     '&:hover': {
-                                        backgroundColor: value.trim() && !disabled ?
-                                            theme.palette.primary.dark :
-                                            theme.palette.action.disabled,
                                         transform: value.trim() && !disabled ? 'scale(1.05)' : 'none',
-                                    },
-                                    '&.Mui-disabled': {
-                                        backgroundColor: theme.palette.action.disabled,
-                                        color: theme.palette.action.disabled,
-                                    },
+                                    }
                                 }}
                             >
                                 <PaperPlaneTiltIcon size={20} weight="fill" />

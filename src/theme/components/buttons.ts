@@ -119,6 +119,10 @@ export const buttonOverrides = {
         '&:active': {
           backgroundColor: theme.palette.primary.dark,
         },
+        '&.Mui-disabled': {
+          backgroundColor: theme.palette.action.disabled,
+          color: theme.palette.action.disabled,
+        },
       }),
 
       colorError: ({ theme }: { theme: any }) => ({
