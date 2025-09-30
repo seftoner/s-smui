@@ -9,12 +9,12 @@ import {
     useTheme,
 } from '@mui/material';
 import {
-    PaperPlaneTiltIcon,
     SparkleIcon,
     PencilCircleIcon,
     CheckCircleIcon,
     FileTextIcon,
     PaperclipIcon,
+    ArrowUpIcon,
 } from '@phosphor-icons/react';
 
 interface PromptInputProps {
@@ -98,6 +98,27 @@ export const PromptInput: React.FC<PromptInputProps> = ({
     const getBackgroundColor = () => {
         if (mode === 'chat') return theme.palette.background.default;
         return theme.palette.background.paper;
+    };
+
+    // Reusable send button component to avoid duplication
+    const SendButton: React.FC<{ onClick: () => void; disabled: boolean; color?: 'primary' | 'default' }> = ({ onClick, disabled, color = 'primary' }) => {
+
+        return (
+            <IconButton
+                onClick={onClick}
+                color={color as any}
+                disabled={disabled}
+                size="small"
+                sx={{
+                    transition: 'all 0.2s ease-in-out',
+                    '&:hover': {
+                        transform: !disabled ? 'scale(1.05)' : 'none',
+                    },
+                }}
+            >
+                <ArrowUpIcon />
+            </IconButton>
+        );
     };
 
     return (
@@ -238,39 +259,14 @@ export const PromptInput: React.FC<PromptInputProps> = ({
                             </Box>
 
                             {/* Send Button */}
-                            <IconButton
-                                onClick={onSend}
-                                color='primary'
-                                disabled={!value.trim() || disabled}
-                                size="small"
-                                sx={{
-                                    transition: 'all 0.2s ease-in-out',
-                                    '&:hover': {
-                                        transform: value.trim() && !disabled ? 'scale(1.05)' : 'none',
-                                    }
-                                }}
-                            >
-                                <PaperPlaneTiltIcon size={20} weight="fill" />
-                            </IconButton>
+                            <SendButton onClick={onSend} disabled={!value.trim() || disabled} color="primary" />
                         </Box>
                     )}
 
                     {/* Chat mode send button */}
                     {mode === 'chat' && (
                         <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1 }}>
-                            <IconButton
-                                onClick={onSend}
-                                disabled={!value.trim() || disabled}
-                                size="small"
-                                sx={{
-                                    transition: 'all 0.2s ease-in-out',
-                                    '&:hover': {
-                                        transform: value.trim() && !disabled ? 'scale(1.05)' : 'none',
-                                    }
-                                }}
-                            >
-                                <PaperPlaneTiltIcon size={20} weight="fill" />
-                            </IconButton>
+                            <SendButton onClick={onSend} disabled={!value.trim() || disabled} color="primary" />
                         </Box>
                     )}
                 </Box>
