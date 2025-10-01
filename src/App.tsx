@@ -1,10 +1,10 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { ThemeProvider, CssBaseline } from '@mui/material';
+import { CssBaseline } from '@mui/material';
 import { CacheProvider } from '@emotion/react';
 import createCache from '@emotion/cache';
 import { prefixer } from 'stylis';
 import rtlPlugin from '@mui/stylis-plugin-rtl';
-import { theme } from './theme';
+import { ThemeModeProvider } from './contexts';
 import { Layout } from './components';
 import { AppThemeProvider } from './contexts';
 import {
@@ -27,9 +27,9 @@ const cacheRtl = createCache({
 function App() {
   return (
     <CacheProvider value={cacheRtl}>
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
+      <ThemeModeProvider>
         <Router>
+          <CssBaseline />
           <AppThemeProvider>
             <Layout>
               <Routes>
@@ -45,7 +45,7 @@ function App() {
             </Layout>
           </AppThemeProvider>
         </Router>
-      </ThemeProvider>
+      </ThemeModeProvider>
     </CacheProvider>
   );
 }

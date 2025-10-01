@@ -53,6 +53,7 @@ import {
     RadioGroup,
     useTheme,
 } from '@mui/material';
+import { useThemeMode } from '../../contexts';
 import {
     Home,
     Settings,
@@ -75,12 +76,12 @@ export const PlaygroundApp: React.FC = () => {
     const [stepperValue, setStepperValue] = useState(1);
     const [dialogOpen, setDialogOpen] = useState(false);
     const [snackbarOpen, setSnackbarOpen] = useState(false);
-    const [isDarkMode, setIsDarkMode] = useState(theme.palette.mode === 'dark');
+    const { mode, setMode } = useThemeMode();
+    const isDarkMode = mode === 'dark';
 
     const handleThemeToggle = () => {
-        setIsDarkMode(!isDarkMode);
-        // In a real app, this would trigger a theme context update
-        console.log('Theme toggle clicked - would switch to', !isDarkMode ? 'dark' : 'light', 'mode');
+        const next = isDarkMode ? 'light' : 'dark';
+        setMode(next);
     };
 
     const ComponentSection: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
@@ -249,8 +250,8 @@ export const PlaygroundApp: React.FC = () => {
                                 <FormControlLabel
                                     control={
                                         <Switch
-                                            checked={switchValue}
-                                            onChange={(e) => setSwitchValue(e.target.checked)}
+                                            // checked={switchValue}
+                                            // onChange={(e) => setSwitchValue(e.target.checked)}
                                             color="primary"
                                         />
                                     }
@@ -373,9 +374,9 @@ export const PlaygroundApp: React.FC = () => {
                             <Box>
                                 <Typography gutterBottom>Circular Progress</Typography>
                                 <Box sx={{ display: 'flex', gap: 2 }}>
-                                    <CircularProgress />
+                                    {/*  <CircularProgress />
                                     <CircularProgress color="secondary" />
-                                    <CircularProgress color="success" />
+                                    <CircularProgress color="success" /> */}
                                 </Box>
                             </Box>
                         </ComponentSection>

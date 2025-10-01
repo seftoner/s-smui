@@ -5,6 +5,8 @@ export const inputOverrides = {
       root: ({ theme }: { theme: any }) => ({
         '& .MuiOutlinedInput-root': {
           borderRadius: 8, // cornerRadius-2
+          backgroundColor: theme.palette.components?.input?.background || theme.palette.background.surface_3 || theme.palette.background.paper,
+          boxShadow: theme.shadows?.[1] || 'none',
           '& fieldset': {
             borderColor: theme.palette.components?.input.enabled,
           },
@@ -26,7 +28,7 @@ export const inputOverrides = {
       root: {
         fontFamily: 'Noto Kufi Arabic, Helvetica, Arial, sans-serif',
         fontWeight: 400,
-        fontSize: 10,
+        fontSize: 16,
         lineHeight: 1.5,
         letterSpacing: '0.015em',
       },

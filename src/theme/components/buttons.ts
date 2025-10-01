@@ -1,4 +1,6 @@
 // Button component overrides
+import { alpha } from '@mui/material/styles';
+
 export const buttonOverrides = {
   MuiButton: {
     styleOverrides: {
@@ -35,13 +37,13 @@ export const buttonOverrides = {
           boxShadow: '0px 2px 4px rgba(59, 107, 246, 0.12)',
         },
       },
-      outlined: {
-        borderColor: 'rgba(59, 107, 246, 0.5)',
+      outlined: ({ theme }: { theme: any }) => ({
+        borderColor: alpha(theme.palette.primary.main, 0.5),
         '&:hover': {
-          borderColor: '#3b6bf6',
-          backgroundColor: 'rgba(59, 107, 246, 0.06)',
+          borderColor: theme.palette.primary.main,
+          backgroundColor: alpha(theme.palette.primary.main, 0.06),
         },
-      },
+      }),
     },
   },
   MuiIconButton: {

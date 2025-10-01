@@ -6,7 +6,6 @@ import {
     Tooltip,
     Typography,
     List,
-    ListItem,
     ListItemText,
     ListItemIcon,
     Divider,

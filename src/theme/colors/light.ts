@@ -1,84 +1,47 @@
 // Figma Design System Color Palette - Light Mode
 export const lightPalette = {
+  mode: 'light' as const,
   primary: {
     main: '#3b6bf6',
     dark: '#163bf5',
     light: '#6196f8',
     contrastText: '#f7f7f7',
-    // State colors from Figma
-    states: {
-      hover: '#286cff0f',
-      selected: '#286cff1a',
-      focus: '#286cff1f',
-      focusVisible: '#286cff80',
-      outlinedBorder: '#286cff80',
-    },
+    
   },
   secondary: {
     main: '#232528',
     dark: '#1b1d21',
     light: '#3e4045',
     contrastText: '#ffffff',
-    // State colors from Figma
-    states: {
-      hover: '#2325280f',
-      selected: '#23252814',
-      focus: '#23252814',
-      focusVisible: '#23252880',
-      outlinedBorder: '#8a8b8d',
-    },
+   
   },
   error: {
     main: '#d83731',
     dark: '#95231f',
     light: '#f47a75',
     contrastText: '#ffffff',
-    // State colors from Figma
-    states: {
-      hover: '#d32f2f0a',
-      selected: '#d32f2f14',
-      focusVisible: '#d32f2f4d',
-      outlinedBorder: '#d32f2f80',
-    },
+    
   },
   warning: {
     main: '#ef6c00',
     dark: '#e65100',
     light: '#ff9800',
     contrastText: '#ffffff',
-    // State colors from Figma
-    states: {
-      hover: '#ef6c000a',
-      selected: '#ef6c0014',
-      focusVisible: '#ef6c004d',
-      outlinedBorder: '#ef6c0080',
-    },
+   
   },
   info: {
     main: '#0073ab',
     dark: '#224f71',
     light: '#00abeb',
     contrastText: '#ffffff',
-    // State colors from Figma
-    states: {
-      hover: '#0288d10a',
-      selected: '#0288d114',
-      focusVisible: '#0288d14d',
-      outlinedBorder: '#0288d180',
-    },
+   
   },
   success: {
     main: '#3f8e50',
     dark: '#24432b',
     light: '#a0d5ab',
     contrastText: '#ffffff',
-    // State colors from Figma
-    states: {
-      hover: '#2e7d320a',
-      selected: '#2e7d3214',
-      focusVisible: '#2e7d324d',
-      outlinedBorder: '#2e7d3280',
-    },
+   
   },
   background: {
     default: '#ffffff',
@@ -89,26 +52,12 @@ export const lightPalette = {
     surface_3: '#ffffff',
     surface_ai_1: '#ffffff',
     surface_ai_2: '#f9f9f9',
-    // Background state colors from Figma
-    states: {
-      selected: '#c1e8fd',
-      hover: '#def3ff',
-      focusOutlined: '#def3ff',
-      disabled: '#e1e3e5',
-    },
   },
   text: {
     primary: '#1b1d21',
     secondary: '#1b1d21b2',
     disabled: '#1b1d214d',
     link: '#3b6bf6',
-    // Text state colors from Figma
-    states: {
-      hover: '#1b1d210a',
-      selected: '#1b1d2114',
-      focus: '#1b1d211f',
-      focusVisible: '#1b1d214d',
-    },
   },
   divider: '#1b1d211f',
     
@@ -240,13 +189,8 @@ export const lightPalette = {
     },
   },
   
-  // Common color states from Figma
   common: {
-    black: {
-      main: '#000000',
+      black: '#000',
+      white: '#fff',
     },
-    white: {
-      main: '#ffffff',
-    },
-  },
 };
