@@ -1,5 +1,4 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { CssBaseline } from '@mui/material';
 import { CacheProvider } from '@emotion/react';
 import createCache from '@emotion/cache';
 import { prefixer } from 'stylis';
@@ -29,7 +28,6 @@ function App() {
     <CacheProvider value={cacheRtl}>
       <ThemeModeProvider>
         <Router>
-          <CssBaseline />
           <AppThemeProvider>
             <Layout>
               <Routes>
