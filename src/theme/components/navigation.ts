@@ -9,34 +9,34 @@ export const navigationOverrides = {
   },
   MuiListItemIcon: {
     styleOverrides: {
-      root: ({ theme }: { theme: any }) => ({
+      root: {
         minWidth: 32,
-        color: theme.palette.components?.listItem.iconEnabled,
-      }),
+        color: 'var(--mui-palette-components-listItem-iconEnabled, var(--mui-palette-text-primary))',
+      },
     },
   },
   MuiListItem: {
     styleOverrides: {
-      root: ({ theme }: { theme: any }) => ({
+      root: {
         borderRadius: 8, // cornerRadius-2
         '&:hover': {
-          backgroundColor: theme.palette.action.hover,
+          backgroundColor: 'var(--mui-palette-action-hover, transparent)',
         },
         '&.Mui-selected': {
-          backgroundColor: theme.palette.action.selected,
+          backgroundColor: 'var(--mui-palette-action-selected, transparent)',
           '&:hover': {
-            backgroundColor: theme.palette.action.selected,
+            backgroundColor: 'var(--mui-palette-action-selected, transparent)',
           },
         },
         '&.Mui-focusVisible': {
-          backgroundColor: theme.palette.action.focus,
-          outline: `2px solid ${theme.palette.primary.main}`,
+          backgroundColor: 'var(--mui-palette-action-focus, transparent)',
+          outline: '2px solid var(--mui-palette-primary-main, currentColor)',
         },
         '&.Mui-disabled': {
-          backgroundColor: theme.palette.action.disabledBackground,
-          color: theme.palette.action.disabled,
+          backgroundColor: 'var(--mui-palette-action-disabledBackground, transparent)',
+          color: 'var(--mui-palette-action-disabled, var(--mui-palette-text-disabled))',
         },
-      }),
+      },
     },
   },
   MuiListSubheader: {

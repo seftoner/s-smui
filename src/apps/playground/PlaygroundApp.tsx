@@ -66,11 +66,9 @@ import {
 } from '@mui/icons-material';
 
 export const PlaygroundApp: React.FC = () => {
-    const theme = useTheme();
     const [tabValue, setTabValue] = useState(0);
     const [sliderValue, setSliderValue] = useState(30);
     const [ratingValue, setRatingValue] = useState(4);
-    const [switchValue, setSwitchValue] = useState(false);
     const [selectValue, setSelectValue] = useState('option1');
     const [toggleValue, setToggleValue] = useState<string | null>('left');
     const [stepperValue, setStepperValue] = useState(1);
@@ -89,8 +87,6 @@ export const PlaygroundApp: React.FC = () => {
             sx={{
                 p: 3,
                 mb: 3,
-                backgroundColor: theme.palette.background.paper,
-                border: `1px solid ${theme.palette.divider}`,
             }}
         >
             <Typography variant="h5" gutterBottom fontWeight="bold">
@@ -489,7 +485,7 @@ export const PlaygroundApp: React.FC = () => {
                             <Tab label="Tab Two" />
                             <Tab label="Tab Three" />
                         </Tabs>
-                        <Box sx={{ p: 3, backgroundColor: theme.palette.background.default, mt: 1, borderRadius: 1 }}>
+                        <Box sx={{ p: 3, mt: 1, borderRadius: 1 }}>
                             {tabValue === 0 && <Typography>Content for Tab One</Typography>}
                             {tabValue === 1 && <Typography>Content for Tab Two</Typography>}
                             {tabValue === 2 && <Typography>Content for Tab Three</Typography>}

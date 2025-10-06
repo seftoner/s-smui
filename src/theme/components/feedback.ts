@@ -18,21 +18,21 @@ export const feedbackOverrides = {
           letterSpacing: '0.0107em',
         },
       },
-      standardWarning: ({ theme }: { theme: any }) => ({
-        backgroundColor: theme.palette.components?.alert.warning.background,
-        color: theme.palette.components?.alert.warning.color,
+      standardWarning: () => ({
+        backgroundColor: 'var(--mui-palette-components-alert-warning-background)',
+        color: 'var(--mui-palette-components-alert-warning-color)',
       }),
-      standardInfo: ({ theme }: { theme: any }) => ({
-        backgroundColor: theme.palette.components?.alert.info.background,
-        color: theme.palette.components?.alert.info.color,
+      standardInfo: () => ({
+        backgroundColor: 'var(--mui-palette-components-alert-info-background)',
+        color: 'var(--mui-palette-components-alert-info-color)',
       }),
-      standardSuccess: ({ theme }: { theme: any }) => ({
-        backgroundColor: theme.palette.components?.alert.success.background,
-        color: theme.palette.components?.alert.success.color,
+      standardSuccess: () => ({
+        backgroundColor: 'var(--mui-palette-components-alert-success-background)',
+        color: 'var(--mui-palette-components-alert-success-color)',
       }),
-      standardError: ({ theme }: { theme: any }) => ({
-        backgroundColor: theme.palette.components?.alert.error.background,
-        color: theme.palette.components?.alert.error.color,
+      standardError: () => ({
+        backgroundColor: 'var(--mui-palette-components-alert-error-background)',
+        color: 'var(--mui-palette-components-alert-error-color)',
       }),
     },
   },
@@ -45,9 +45,9 @@ export const feedbackOverrides = {
   },
   MuiTooltip: {
     styleOverrides: {
-      tooltip: ({ theme }: { theme: any }) => ({
-        backgroundColor: theme.palette.components?.tooltip.fill,
-        color: theme.palette.primary.contrastText,
+      tooltip: () => ({
+        backgroundColor: 'var(--mui-palette-components-tooltip-fill)',
+        color: 'var(--mui-palette-primary-contrastText)',
         fontFamily: 'Noto Kufi Arabic, Helvetica, Arial, sans-serif',
         fontWeight: 500,
         fontSize: 10,
@@ -57,8 +57,8 @@ export const feedbackOverrides = {
         padding: '8px 12px',
         maxWidth: 300,
       }),
-      arrow: ({ theme }: { theme: any }) => ({
-        color: theme.palette.components?.tooltip.fill,
+      arrow: () => ({
+        color: 'var(--mui-palette-components-tooltip-fill)',
       }),
     },
   },

@@ -11,34 +11,34 @@ export const dataDisplayOverrides = {
         letterSpacing: '0.0123em',
         height: 32,
         '&:hover': {
-          backgroundColor: theme.palette.components?.chip.hover,
+          backgroundColor: theme.vars?.palette?.components?.chip?.hover,
         },
         '&.Mui-focusVisible': {
-          backgroundColor: theme.palette.components?.chip.focused,
+          backgroundColor: theme.vars?.palette?.components?.chip?.focused,
         },
         '&.Mui-disabled': {
-          backgroundColor: theme.palette.components?.chip.disabled,
+          backgroundColor: theme.vars?.palette?.components?.chip?.disabled,
         },
       }),
       filled: ({ theme }: { theme: any }) => ({
-        backgroundColor: theme.palette.grey[300],
+        backgroundColor: theme.vars?.palette?.grey?.[300],
         '&:hover': {
-          backgroundColor: theme.palette.components?.chip.filled.hovered,
+          backgroundColor: theme.vars?.palette?.components?.chip?.filled?.hovered,
         },
         '&.Mui-focusVisible': {
-          backgroundColor: theme.palette.components?.chip.filled.focus,
+          backgroundColor: theme.vars?.palette?.components?.chip?.filled?.focus,
         },
       }),
       outlined: ({ theme }: { theme: any }) => ({
-        borderColor: theme.palette.components?.chip.outline.enabled,
+        borderColor: theme.vars?.palette?.components?.chip?.outline?.enabled,
         '&:hover': {
-          borderColor: theme.palette.components?.chip.outline.hovered,
+          borderColor: theme.vars?.palette?.components?.chip?.outline?.hovered,
         },
         '&.Mui-focusVisible': {
-          borderColor: theme.palette.components?.chip.outline.focused,
+          borderColor: theme.vars?.palette?.components?.chip?.outline?.focused,
         },
         '&.Mui-disabled': {
-          borderColor: theme.palette.components?.chip.outline.disabled,
+          borderColor: theme.vars?.palette?.components?.chip?.outline?.disabled,
         },
       }),
     },

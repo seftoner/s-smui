@@ -2,22 +2,22 @@
 export const inputOverrides = {
   MuiTextField: {
     styleOverrides: {
-      root: ({ theme }: { theme: any }) => ({
+      root: () => ({
         '& .MuiOutlinedInput-root': {
           borderRadius: 8, // cornerRadius-2
-          backgroundColor: theme.palette.components?.input?.background || theme.palette.background.surface_3 || theme.palette.background.paper,
-          boxShadow: theme.shadows?.[1] || 'none',
+          backgroundColor: 'var(--mui-palette-components-input-background, var(--mui-palette-background-surface-3, var(--mui-palette-background-paper)))',
+          boxShadow: 'var(--mui-shadows-1, none)',
           '& fieldset': {
-            borderColor: theme.palette.components?.input.enabled,
+            borderColor: 'var(--mui-palette-components-input-enabled)',
           },
           '&:hover fieldset': {
-            borderColor: theme.palette.primary.light
+            borderColor: 'var(--mui-palette-primary-light)'
           },
           '&.Mui-focused fieldset': {
-            borderColor: theme.palette.primary.main,
+            borderColor: 'var(--mui-palette-primary-main)',
           },
           '&.Mui-disabled fieldset': {
-            borderColor: theme.palette.action.disabled,
+            borderColor: 'var(--mui-palette-action-disabled)',
           },
         },
       }),

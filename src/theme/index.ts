@@ -1,5 +1,5 @@
 // Main theme exports
-export { default as theme, createAppTheme } from './theme';
+export { default as theme } from './theme';
 export type { Theme } from '@mui/material/styles';
 
 // Export modular theme parts for advanced usage

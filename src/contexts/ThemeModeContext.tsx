@@ -1,7 +1,7 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext } from 'react';
 import type { ReactNode } from 'react';
-import { ThemeProvider, CssBaseline } from '@mui/material';
-import { createAppTheme } from '../theme';
+import { ThemeProvider, CssBaseline, useColorScheme } from '@mui/material';
+import { theme } from '../theme';
 
 type ThemeMode = 'light' | 'dark';
 
@@ -12,31 +12,34 @@ interface ThemeModeContextValue {
 
 const ThemeModeContext = createContext<ThemeModeContextValue | undefined>(undefined);
 
-export const ThemeModeProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-    const [mode, setMode] = useState<ThemeMode>(() => {
-        try {
-            const stored = localStorage.getItem('appThemeMode');
-            return (stored as ThemeMode) || 'light';
-        } catch {
-            return 'light';
-        }
-    });
+// Inner component that uses useColorScheme hook (must be inside ThemeProvider)
+const ThemeModeProviderInner: React.FC<{ children: ReactNode }> = ({ children }) => {
+    const { mode, setMode: setColorScheme } = useColorScheme();
 
-    useEffect(() => {
-        try {
-            localStorage.setItem('appThemeMode', mode);
-        } catch { }
-    }, [mode]);
+    const setMode = React.useCallback((newMode: ThemeMode) => {
+        setColorScheme(newMode);
+    }, [setColorScheme]);
 
-    const theme = React.useMemo(() => createAppTheme(mode), [mode]);
+    const contextValue = React.useMemo(() => ({
+        mode: (mode || 'light') as ThemeMode,
+        setMode,
+    }), [mode, setMode]);
 
     return (
-        <ThemeModeContext.Provider value={{ mode, setMode }}>
-            <ThemeProvider theme={theme}>
-                <CssBaseline />
-                {children}
-            </ThemeProvider>
+        <ThemeModeContext.Provider value={contextValue}>
+            {children}
         </ThemeModeContext.Provider>
+    );
+};
+
+export const ThemeModeProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+    return (
+        <ThemeProvider theme={theme} defaultMode="light">
+            <CssBaseline />
+            <ThemeModeProviderInner>
+                {children}
+            </ThemeModeProviderInner>
+        </ThemeProvider>
     );
 };
 

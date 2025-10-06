@@ -1,7 +1,6 @@
 import { createContext, useContext } from 'react';
 import type { ReactNode } from 'react';
 import { useLocation } from 'react-router-dom';
-import { useTheme } from '@mui/material/styles';
 
 interface AppTheme {
     sidebarBackgroundColor: string;
@@ -21,19 +20,18 @@ interface AppThemeProviderProps {
 
 export function AppThemeProvider({ children }: AppThemeProviderProps) {
     const location = useLocation();
-    const theme = useTheme();
-
-    // App-specific theme configurations using theme palette directly
+    // App-specific theme configurations using CSS variables for instant theme switching
     const APP_THEMES: Record<string, AppTheme> = {
         '/chat': {
-            sidebarBackgroundColor: (theme.palette as any).background.surface_ai_2,
-            pageBackgroundColor: (theme.palette as any).background.surface_ai_1,
+            // Prefer channel-aware background vars where available; fall back to surface tokens
+            sidebarBackgroundColor: 'var(--mui-palette-background-surface_ai_2)',
+            pageBackgroundColor: 'var(--mui-palette-background-surface_ai_1)',
             isSpecialTheme: true,
         },
         // Default theme for all other apps
         default: {
-            sidebarBackgroundColor: (theme.palette as any).background.surface_2,
-            pageBackgroundColor: (theme.palette as any).background.surface_0,
+            sidebarBackgroundColor: 'var(--mui-palette-background-surface_2)',
+            pageBackgroundColor: 'var(--mui-palette-background-surface_0)',
             isSpecialTheme: false,
         },
     };

@@ -1,5 +1,4 @@
 import { createTheme } from '@mui/material/styles';
-import type { ThemeOptions, Theme } from '@mui/material/styles';
 import { lightPalette, darkPalette } from './colors';
 import { typography } from './typography';
 import { components } from './components';
@@ -46,14 +45,22 @@ const staticShadows = [
   '0px 144px 288px rgba(16,24,40,0.46), 0px 72px 144px rgba(16,24,40,0.50)',
 ] as any;
 
-// Theme cache to avoid recreating themes - use WeakMap for better memory management
-const themeCache = new Map<'light' | 'dark', Theme>();
-
-const themeOptions = (mode: 'light' | 'dark' = 'light'): ThemeOptions => ({
+// Create theme with CSS variables for instant theme switching
+export const theme = createTheme({
+  cssVariables: {
+    cssVarPrefix: 'mui', // Use 'mui' prefix as requested
+    colorSchemeSelector: 'class', // Use class selector for manual toggling
+  },
+  defaultColorScheme: 'light', // Set default color scheme
+  colorSchemes: {
+    light: {
+      palette: lightPalette as any,
+    },
+    dark: {
+      palette: darkPalette as any,
+    },
+  },
   direction: 'rtl', // Enable RTL direction
-  palette: {
-    ...(mode === 'light' ? lightPalette : darkPalette),
-  } as any, // Type assertion to allow custom properties
   typography,
   components,
   spacing: staticSpacing,
@@ -61,23 +68,5 @@ const themeOptions = (mode: 'light' | 'dark' = 'light'): ThemeOptions => ({
   breakpoints: staticBreakpoints,
   shadows: staticShadows,
 });
-
-export const createAppTheme = (mode: 'light' | 'dark' = 'light'): Theme => {
-  // Check cache first
-  const cached = themeCache.get(mode);
-  if (cached) {
-    console.log(`[Theme] Using cached ${mode} theme`);
-    return cached;
-  }
-  
-  // Create new theme only if not cached
-  console.log(`[Theme] Creating new ${mode} theme`);
-  const theme = createTheme(themeOptions(mode));
-  themeCache.set(mode, theme);
-  return theme;
-};
-
-// Export default light theme for backwards compatibility
-export const theme = createAppTheme('light');
 
 export default theme;

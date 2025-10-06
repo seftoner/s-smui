@@ -2,7 +2,6 @@ import React from 'react';
 import {
     Box,
     Typography,
-    useTheme,
 } from '@mui/material';
 import {
     SparkleIcon,
@@ -17,8 +16,6 @@ export const WelcomeSection: React.FC<WelcomeSectionProps> = ({
     title = "AI Assistant",
     subtitle = "I'm here to help you with questions, creative tasks, analysis, and more. What would you like to explore today?",
 }) => {
-    const theme = useTheme();
-
     return (
 
         <Box
@@ -37,10 +34,10 @@ export const WelcomeSection: React.FC<WelcomeSectionProps> = ({
                     mb: 2,
                     p: 2,
                     borderRadius: 3,
-                    background: `linear-gradient(135deg, ${theme.palette.primary.main}15, ${theme.palette.info.main}10)`,
+                    background: `linear-gradient(135deg, var(--mui-palette-primary-main)15, var(--mui-palette-info-main)10)`,
                 }}
             >
-                <SparkleIcon size={24} color={theme.palette.primary.main} />
+                <SparkleIcon size={24} color="var(--mui-palette-primary-main)" />
                 <Typography variant="h5" fontWeight="600" color="primary">
                     {title}
                 </Typography>

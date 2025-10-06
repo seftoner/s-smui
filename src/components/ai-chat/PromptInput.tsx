@@ -89,15 +89,15 @@ export const PromptInput: React.FC<PromptInputProps> = ({
     };
 
     const getBorderColor = () => {
-        if (error) return theme.palette.error.main;
-        if (isFocused) return theme.palette.primary.main;
-        if (isHovered) return theme.palette.primary.light;
-        return theme.palette.divider;
+        if (error) return 'var(--mui-palette-error-main)';
+        if (isFocused) return 'var(--mui-palette-primary-main)';
+        if (isHovered) return 'var(--mui-palette-primary-light)';
+        return 'var(--mui-palette-divider)';
     };
 
     const getBackgroundColor = () => {
-        if (mode === 'chat') return theme.palette.background.default;
-        return theme.palette.background.paper;
+        if (mode === 'chat') return 'var(--mui-palette-background-default)';
+        return 'var(--mui-palette-background-paper)';
     };
 
     // Reusable send button component to avoid duplication
@@ -139,7 +139,7 @@ export const PromptInput: React.FC<PromptInputProps> = ({
                         0px 4px 16px -2px rgba(100, 75, 27, 0.08)
                     `,
                     '&:hover': {
-                        borderColor: !isFocused ? theme.palette.primary.light : theme.palette.primary.main,
+                        borderColor: !isFocused ? theme.vars?.palette?.primary?.light : theme.vars?.palette?.primary?.main,
                     },
                 }}
             >
@@ -157,15 +157,15 @@ export const PromptInput: React.FC<PromptInputProps> = ({
                                 size="small"
                                 disabled
                                 sx={{
-                                    backgroundColor: theme.palette.action.disabledBackground,
+                                    backgroundColor: theme.vars?.palette?.action?.disabledBackground,
                                     width: 32,
                                     height: 32,
                                     '&.Mui-disabled': {
-                                        backgroundColor: theme.palette.action.disabledBackground,
+                                        backgroundColor: theme.vars?.palette?.action?.disabledBackground,
                                     }
                                 }}
                             >
-                                <SparkleIcon size={20} color={theme.palette.action.disabled} />
+                                <SparkleIcon size={20} color={theme.vars?.palette?.action?.disabled} />
                             </IconButton>
                         )}
 
@@ -201,9 +201,9 @@ export const PromptInput: React.FC<PromptInputProps> = ({
                                 sx={{
                                     width: 32,
                                     height: 32,
-                                    color: theme.palette.text.secondary,
+                                    color: theme.vars?.palette?.text?.secondary,
                                     '&:hover': {
-                                        backgroundColor: theme.palette.action.hover,
+                                        backgroundColor: theme.vars?.palette?.action?.hover,
                                     }
                                 }}
                             >
@@ -240,16 +240,16 @@ export const PromptInput: React.FC<PromptInputProps> = ({
                                         sx={{
                                             fontSize: '0.8125rem', // 13px
                                             fontFamily: theme.typography.fontFamily,
-                                            backgroundColor: theme.palette.background.default,
-                                            borderColor: theme.palette.divider,
-                                            color: theme.palette.text.primary,
+                                            backgroundColor: theme.vars?.palette?.background?.default,
+                                            borderColor: theme.vars?.palette?.divider,
+                                            color: theme.vars?.palette?.text?.primary,
                                             '& .MuiChip-icon': {
-                                                color: theme.palette.text.secondary,
+                                                color: theme.vars?.palette?.text?.secondary,
                                                 fontSize: '0.875rem',
                                             },
                                             '&:hover': {
-                                                backgroundColor: theme.palette.action.hover,
-                                                borderColor: theme.palette.primary.light,
+                                                backgroundColor: theme.vars?.palette?.action?.hover,
+                                                borderColor: theme.vars?.palette?.primary?.light,
                                                 transform: 'translateY(-1px)',
                                             },
                                             transition: 'all 0.2s ease-in-out',
