@@ -14,7 +14,7 @@ export const dataDisplayOverrides = {
         height: 32,
         transition: 'all 0.2s ease-in-out',
         '&:hover': {
-          backgroundColor: theme.vars.palette.components?.chip?.hover,
+          // backgroundColor: theme.vars.palette.components?.chip?.hover,
           transform: 'translateY(-1px)',
         },
         '&.Mui-focusVisible': {
@@ -35,10 +35,12 @@ export const dataDisplayOverrides = {
       }),
       outlined: ({ theme }: { theme: any }) => ({
         borderColor: theme.vars.palette.components?.chip?.outline?.enabled,
-        transition: 'all 0.2s ease-in-out',
+        // borderWidth: '1px',
+        // borderStyle: 'solid',
+        // transition: 'all 0.2s ease-in-out',
         '&:hover': {
-          borderColor: theme.vars.palette.primary.light,
-          transform: 'translateY(-1px)',
+          // borderColor: theme.vars.palette.primary.light,
+          // transform: 'translateY(-1px)',
         },
         '&.Mui-focusVisible': {
           borderColor: theme.vars.palette.primary.main,
@@ -53,12 +55,16 @@ export const dataDisplayOverrides = {
         props: { variant: 'selected' as any },
         style: ({ theme }: { theme: any }) => ({
           backgroundColor: theme.vars.palette.primary.main,
-          borderColor: theme.vars.palette.primary.main,
+          border: `1px solid ${theme.vars.palette.primary.main}`, // Use shorthand to ensure consistency
           color: theme.vars.palette.primary.contrastText,
-          transition: 'all 0.2s ease-in-out',
+          // Force same spacing as outlined variant
+          '& .MuiChip-label': {
+            paddingLeft: '7px',
+            paddingRight: '7px',
+          },
           '& .MuiChip-icon': {
             color: theme.vars.palette.primary.contrastText,
-            transition: 'color 0.2s ease-in-out',
+            marginLeft: '2px',
           },
           '&:hover': {
             backgroundColor: theme.vars.palette.primary.dark,

@@ -281,11 +281,7 @@ export const PromptInput: React.FC<PromptInputProps> = ({
                                             icon={suggestion.icon}
                                             variant={isActive ? "selected" : "outlined"}
                                             size="small"
-                                            clickable
                                             onClick={() => handleSuggestionClick(suggestion.id)}
-                                        // sx={{
-                                        //     transition: 'all 0.2s ease-in-out',
-                                        // }}
                                         />
                                     );
                                 })}
