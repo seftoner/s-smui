@@ -109,23 +109,69 @@ const InputRow: React.FC<{
 }) => {
         const isChat = state.context.mode === 'chat';
 
+        // Check if text has multiple lines (for layout switching)
+        const textValue = state.context.value || '';
+        const hasNewlines = textValue.includes('\n');
+
+        // Check if input would overflow and collide with buttons
+        const [shouldWrap, setShouldWrap] = React.useState(false);
+
+        React.useEffect(() => {
+            if (textFieldRef.current && isChat && textValue.trim().length > 0 && !hasNewlines) {
+                const container = textFieldRef.current.closest('[data-testid="input-container"]') || textFieldRef.current.parentElement;
+                const textarea = textFieldRef.current.querySelector('textarea');
+
+                if (textarea && container) {
+                    // Create a temporary element to measure text width
+                    const tempDiv = document.createElement('div');
+                    tempDiv.style.position = 'absolute';
+                    tempDiv.style.visibility = 'hidden';
+                    tempDiv.style.whiteSpace = 'nowrap';
+                    tempDiv.style.font = window.getComputedStyle(textarea).font;
+                    tempDiv.textContent = textValue;
+                    document.body.appendChild(tempDiv);
+
+                    const textWidth = tempDiv.offsetWidth;
+                    document.body.removeChild(tempDiv);
+
+                    // Calculate available width (container - buttons - gaps)
+                    const containerWidth = (container as HTMLElement).offsetWidth;
+                    const buttonWidth = 40; // Approximate button width
+                    const gap = 8; // Gap between elements
+                    // const availableWidth = containerWidth - (buttonWidth * 2) - (gap * 2) - 32; // 32px for padding
+                    const availableWidth = containerWidth - (buttonWidth + gap * 3);
+
+                    setShouldWrap(textWidth > availableWidth);
+                }
+            } else {
+                setShouldWrap(false);
+            }
+        }, [textValue, isChat, hasNewlines]);
+
+        const shouldUseVerticalLayout = isChat && (hasNewlines || shouldWrap);
+
         return (
             <Box sx={{
                 display: 'flex',
-                alignItems: 'center',
-                gap: 1,
-                mb: isChat ? 0 : 2
+                flexDirection: shouldUseVerticalLayout ? 'column' : 'row',
+                alignItems: shouldUseVerticalLayout ? 'stretch' : 'center',
+                // gap: 1,
+                mb: isChat ? 0 : 2,
+                ml: isChat ? 0 : 2,
+                transition: 'all 0.2s ease-in-out', // Smooth transition
             }}>
-                {/* File attachment button for chat mode */}
-                {isChat && <FileAttachmentButton onClick={handleAddFilesClick} />}
+                {/* File attachment button for horizontal layout */}
+                {isChat && !shouldUseVerticalLayout && (
+                    <FileAttachmentButton onClick={handleAddFilesClick} />
+                )}
 
-                {/* Text Field */}
+                {/* Text Field - always present, same component */}
                 <InputBase
                     ref={textFieldRef}
                     fullWidth
                     multiline
                     maxRows={6}
-                    minRows={1}
+                    minRows={shouldUseVerticalLayout ? 2 : 1}
                     placeholder={placeholder}
                     value={state.context.value}
                     onChange={handleInputChange}
@@ -133,10 +179,29 @@ const InputRow: React.FC<{
                     onFocus={() => send({ type: 'FOCUS' })}
                     onBlur={() => send({ type: 'BLUR' })}
                     disabled={disabled}
+                    sx={{
+                        transition: 'min-height 0.2s ease-in-out', // Smooth height transition
+                    }}
                 />
 
-                {/* Send button for chat mode */}
-                {isChat && <SendButton onClick={handleSend} disabled={!canSend()} color="primary" />}
+                {/* Send button for horizontal layout */}
+                {isChat && !shouldUseVerticalLayout && (
+                    <SendButton onClick={handleSend} disabled={!canSend()} color="primary" />
+                )}
+
+                {/* Buttons Container for vertical layout only */}
+                {isChat && shouldUseVerticalLayout && (
+                    <Box sx={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        width: '100%',
+                        transition: 'all 0.2s ease-in-out',
+                    }}>
+                        <FileAttachmentButton onClick={handleAddFilesClick} />
+                        <SendButton onClick={handleSend} disabled={!canSend()} color="primary" />
+                    </Box>
+                )}
             </Box>
         );
     };
@@ -490,14 +555,12 @@ export const PromptInput: React.FC<PromptInputProps> = ({
                     {/* File Attachments Area */}
                     {state.context.attachedFiles.length > 0 && (
                         <Box sx={{
-                            mt: 2,
-                            mb: state.context.mode === 'landing' ? 2 : 0
+                            mb: 2,
                         }}>
                             <Box sx={{
                                 display: 'flex',
                                 gap: 3,
                                 overflowX: 'auto',
-                                pb: 1,
                             }}>
                                 {state.context.attachedFiles.map((file) => (
                                     <Box key={file.id} sx={{ flexShrink: 0 }}>
