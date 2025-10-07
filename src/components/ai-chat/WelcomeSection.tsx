@@ -26,8 +26,6 @@ export const WelcomeSection: React.FC<WelcomeSectionProps> = ({
             sx={{
                 textAlign: 'center',
                 mb: 4,
-
-                transition: 'opacity 0.6s ease-in-out',
             }}
         >
             <Box
@@ -50,7 +48,7 @@ export const WelcomeSection: React.FC<WelcomeSectionProps> = ({
                 variant="body1"
                 color="text.secondary"
                 sx={{
-                    maxWidth: 400,
+                    maxWidth: 520,
                     mx: 'auto'
                 }}
             >

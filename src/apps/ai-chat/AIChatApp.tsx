@@ -54,9 +54,10 @@ export const AIChatApp: React.FC = () => {
                     flex: 1,
                     display: 'flex',
                     flexDirection: 'column',
-                    justifyContent: 'center',
                     alignItems: 'center',
-                    p: 4, // Use theme spacing
+                    pt: '80px',
+                    px: 4,
+                    pb: 4,
                     overflow: 'auto',
                 }}
             >
