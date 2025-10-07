@@ -152,6 +152,14 @@ export const PlaygroundApp: React.FC = () => {
                                 <Button variant="text" color="primary" size="small">Small (13px)</Button>
                             </Box>
 
+                            {/* Text Buttons - All Sizes */}
+                            <Typography variant="h6" gutterBottom>Text Buttons - error</Typography>
+                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 3 }}>
+                                <Button variant="text" color="error" size="large">Large (15px)</Button>
+                                <Button variant="text" color="error" size="medium">Medium (14px)</Button>
+                                <Button variant="text" color="error" size="small">Small (13px)</Button>
+                            </Box>
+
                             {/* Color Variants */}
                             <Typography variant="h6" gutterBottom>Color Variants</Typography>
                             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 3 }}>

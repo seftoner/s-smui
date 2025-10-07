@@ -1,5 +1,27 @@
 import { createMachine, assign } from 'xstate';
-import type { PromptInputContext, PromptInputEvent } from './types';
+import type { PromptInputContext, PromptInputEvent, AttachedFile } from './types';
+import { FILE_UPLOAD_CONSTANTS } from './types';
+import { validateFile } from './fileUploadUtils';
+
+/**
+ * Generate unique ID for files
+ */
+const generateFileId = (): string => {
+  return `file_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+};
+
+/**
+ * Create attached file object from File
+ */
+const createAttachedFile = (file: File): AttachedFile => ({
+  id: generateFileId(),
+  file,
+  fileName: file.name,
+  fileSize: file.size,
+  mimeType: file.type,
+  uploadStatus: 'uploading',
+  uploadProgress: 0,
+});
 
 /**
  * Type guard to check if an event is a value change event
@@ -35,6 +57,8 @@ export const promptInputMachine = createMachine({
     helperText: '',
     mode: 'landing',
     activeChipId: null,
+    attachedFiles: [],
+    isDragOver: false,
   } as PromptInputContext,
   states: {
     idle: {
@@ -66,6 +90,73 @@ export const promptInputMachine = createMachine({
         DESELECT_CHIP: {
           actions: assign({
             activeChipId: () => null,
+          }),
+        },
+        // File attachment actions
+        ADD_FILES: {
+          actions: assign({
+            attachedFiles: ({ event, context }) => {
+              // Check if adding files would exceed the limit
+              if (context.attachedFiles.length + event.files.length > FILE_UPLOAD_CONSTANTS.MAX_FILES) {
+                return context.attachedFiles; // Don't add files if it would exceed limit
+              }
+              
+              // Create attached files (validation already done in component)
+              const newFiles = event.files.map((file: AttachedFile) => ({
+                ...file,
+                uploadStatus: 'uploading' as const,
+                uploadProgress: 0,
+              }));
+              
+              return [...context.attachedFiles, ...newFiles];
+            },
+          }),
+        },
+        REMOVE_FILE: {
+          actions: assign({
+            attachedFiles: ({ event, context }) => 
+              context.attachedFiles.filter(file => file.id !== event.fileId),
+          }),
+        },
+        UPDATE_FILE_PROGRESS: {
+          actions: assign({
+            attachedFiles: ({ event, context }) => 
+              context.attachedFiles.map(file => 
+                file.id === event.fileId 
+                  ? { ...file, uploadProgress: event.progress }
+                  : file
+              ),
+          }),
+        },
+        FILE_UPLOAD_SUCCESS: {
+          actions: assign({
+            attachedFiles: ({ event, context }) => 
+              context.attachedFiles.map(file => 
+                file.id === event.fileId 
+                  ? { ...file, uploadStatus: 'completed', uploadProgress: 100, uploadedUrl: event.uploadedUrl }
+                  : file
+              ),
+          }),
+        },
+        FILE_UPLOAD_ERROR: {
+          actions: assign({
+            attachedFiles: ({ event, context }) => 
+              context.attachedFiles.map(file => 
+                file.id === event.fileId 
+                  ? { ...file, uploadStatus: 'error', error: event.error }
+                  : file
+              ),
+          }),
+        },
+        // Drag & drop actions
+        DRAG_ENTER: {
+          actions: assign({
+            isDragOver: () => true,
+          }),
+        },
+        DRAG_LEAVE: {
+          actions: assign({
+            isDragOver: () => false,
           }),
         },
       },

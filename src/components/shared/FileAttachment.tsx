@@ -300,7 +300,7 @@ export const FileAttachment: React.FC<FileAttachmentProps> = ({
                 backgroundColor: theme.vars.palette.background.paper,
                 border: `1px solid ${theme.vars.palette.divider}`,
                 // minHeight: 56,
-                maxWidth: 300,
+                width: 220,
                 position: 'relative',
                 cursor: 'pointer',
                 transition: 'all 0.2s ease',

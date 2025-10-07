@@ -1,5 +1,5 @@
 import type { } from '@mui/material/themeCssVarsAugmentation';
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import {
     Box,
     InputBase,
@@ -8,9 +8,10 @@ import {
     Typography,
     Chip,
     useTheme,
+    Snackbar,
+    Alert,
 } from '@mui/material';
 import {
-    SparkleIcon,
     PencilCircleIcon,
     CheckCircleIcon,
     FileTextIcon,
@@ -18,8 +19,11 @@ import {
     ArrowUpIcon,
 } from '@phosphor-icons/react';
 import { useMachine } from '@xstate/react';
+import { FileAttachment } from '../shared/FileAttachment';
 import { promptInputMachine } from './promptInputMachine';
-import type { PromptInputProps, SuggestionChip } from './types';
+import type { PromptInputProps, SuggestionChip, AttachedFile } from './types';
+import { FILE_UPLOAD_CONSTANTS } from './types';
+import { validateFiles, simulateFileUpload, fileListToArray } from './fileUploadUtils';
 
 // Suggestion chips configuration
 const SUGGESTION_CHIPS: SuggestionChip[] = [
@@ -43,6 +47,155 @@ const SUGGESTION_CHIPS: SuggestionChip[] = [
     }
 ];
 
+// Reusable send button component to avoid duplication
+const SendButton: React.FC<{ onClick: () => void; disabled: boolean; color?: 'primary' | 'default' }> = ({ onClick, disabled, color = 'primary' }) => {
+    return (
+        <IconButton
+            onClick={onClick}
+            color={color as any}
+            disabled={disabled}
+            size="small"
+            sx={{
+                transition: 'all 0.2s ease-in-out',
+                '&:hover': {
+                    transform: !disabled ? 'scale(1.05)' : 'none',
+                },
+            }}
+        >
+            <ArrowUpIcon />
+        </IconButton>
+    );
+};
+
+// Reusable file attachment button
+const FileAttachmentButton: React.FC<{
+    size?: 'small' | 'medium';
+    onClick: () => void;
+}> = ({ size = 'small', onClick }) => {
+    return (
+        <IconButton
+            onClick={onClick}
+            size={size}
+        >
+            <PaperclipIcon />
+        </IconButton>
+    );
+};
+
+// Main input row component (used by both modes)
+const InputRow: React.FC<{
+    state: any;
+    send: any;
+    placeholder: string;
+    handleInputChange: (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+    handleKeyPress: (event: React.KeyboardEvent) => void;
+    handleAddFilesClick: () => void;
+    textFieldRef: React.RefObject<HTMLDivElement | null>;
+    disabled: boolean;
+    canSend: () => boolean;
+    handleSend: () => void;
+    theme: any;
+}> = ({
+    state,
+    send,
+    placeholder,
+    handleInputChange,
+    handleKeyPress,
+    handleAddFilesClick,
+    textFieldRef,
+    disabled,
+    canSend,
+    handleSend,
+    theme
+}) => {
+        const isChat = state.context.mode === 'chat';
+
+        return (
+            <Box sx={{
+                display: 'flex',
+                alignItems: 'flex-end',
+                gap: 1,
+                mb: isChat ? 0 : 2
+            }}>
+                {/* File attachment button for chat mode */}
+                {isChat && <FileAttachmentButton onClick={handleAddFilesClick} />}
+
+                {/* Text Field */}
+                <InputBase
+                    ref={textFieldRef}
+                    fullWidth
+                    multiline
+                    maxRows={6}
+                    minRows={1}
+                    placeholder={placeholder}
+                    value={state.context.value}
+                    onChange={handleInputChange}
+                    onKeyDown={handleKeyPress}
+                    onFocus={() => send({ type: 'FOCUS' })}
+                    onBlur={() => send({ type: 'BLUR' })}
+                    disabled={disabled}
+                />
+
+                {/* Send button for chat mode */}
+                {isChat && <SendButton onClick={handleSend} disabled={!canSend()} color="primary" />}
+            </Box>
+        );
+    };
+
+// Footer component for landing mode
+const LandingFooter: React.FC<{
+    state: any;
+    handleAddFilesClick: () => void;
+    handleSuggestionClick: (chipId: string) => void;
+    canSend: () => boolean;
+    handleSend: () => void;
+}> = ({
+    state,
+    handleAddFilesClick,
+    handleSuggestionClick,
+    canSend,
+    handleSend
+}) => {
+        return (
+            <Box sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: 2
+            }}>
+                {/* Left side: File button + Suggestion Chips */}
+                <Box sx={{
+                    display: 'flex',
+                    gap: 2,
+                    flex: 1,
+                    justifyContent: 'flex-start',
+                    flexWrap: 'wrap',
+                    alignItems: 'center'
+                }}>
+                    <FileAttachmentButton onClick={handleAddFilesClick} />
+
+                    {/* Suggestion chips */}
+                    {SUGGESTION_CHIPS.map((suggestion) => {
+                        const isActive = state.context.activeChipId === suggestion.id;
+                        return (
+                            <Chip
+                                key={suggestion.id}
+                                label={suggestion.label}
+                                icon={suggestion.icon}
+                                variant={isActive ? "selected" : "outlined"}
+                                size="small"
+                                onClick={() => handleSuggestionClick(suggestion.id)}
+                            />
+                        );
+                    })}
+                </Box>
+
+                {/* Right side: Send Button */}
+                <SendButton onClick={handleSend} disabled={!canSend()} color="primary" />
+            </Box>
+        );
+    };
+
 export const PromptInput: React.FC<PromptInputProps> = ({
     value: externalValue,
     onChange,
@@ -56,6 +209,19 @@ export const PromptInput: React.FC<PromptInputProps> = ({
 }) => {
     const theme = useTheme();
     const textFieldRef = useRef<HTMLDivElement>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    // Snackbar state for error notifications
+    const [snackbarOpen, setSnackbarOpen] = useState(false);
+    const [snackbarMessage, setSnackbarMessage] = useState('');
+    const [snackbarSeverity, setSnackbarSeverity] = useState<'error' | 'warning' | 'info' | 'success'>('error');
+
+    // Helper function to show error messages
+    const showError = (message: string, severity: 'error' | 'warning' | 'info' | 'success' = 'error') => {
+        setSnackbarMessage(message);
+        setSnackbarSeverity(severity);
+        setSnackbarOpen(true);
+    };
 
     // Initialize the state machine
     const [state, send] = useMachine(promptInputMachine);
@@ -93,9 +259,9 @@ export const PromptInput: React.FC<PromptInputProps> = ({
     }, [state.context.activeChipId, onChipChange]);
 
     const handleKeyPress = (event: React.KeyboardEvent) => {
-        if (event.key === 'Enter' && !event.shiftKey && !disabled) {
+        if (event.key === 'Enter' && !event.shiftKey) {
             event.preventDefault();
-            handleSend();
+            handleSend(); // handleSend now includes all validation logic
         }
     };
 
@@ -105,8 +271,145 @@ export const PromptInput: React.FC<PromptInputProps> = ({
         onChange(newValue);
     };
 
+    // Helper function to create AttachedFile from File
+    const createAttachedFile = (file: File): AttachedFile => ({
+        id: `file_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        file,
+        fileName: file.name,
+        fileSize: file.size,
+        mimeType: file.type,
+        uploadStatus: 'uploading',
+        uploadProgress: 0,
+    });
+
+    // File handling functions
+    const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const files = event.target.files;
+        if (files && files.length > 0) {
+            const fileArray = fileListToArray(files);
+            const { validFiles, errors } = validateFiles(fileArray, state.context.attachedFiles.length);
+
+            if (validFiles.length > 0) {
+                // Convert to AttachedFile objects
+                const attachedFiles = validFiles.map(createAttachedFile);
+
+                send({ type: 'ADD_FILES', files: attachedFiles });
+
+                // Start upload simulation for each file
+                attachedFiles.forEach(attachedFile => {
+                    simulateFileUpload(
+                        attachedFile.id,
+                        (fileId, progress) => send({ type: 'UPDATE_FILE_PROGRESS', fileId, progress }),
+                        (fileId, uploadedUrl) => send({ type: 'FILE_UPLOAD_SUCCESS', fileId, uploadedUrl }),
+                        (fileId, error) => send({ type: 'FILE_UPLOAD_ERROR', fileId, error })
+                    );
+                });
+            }
+
+            // Show errors if any
+            if (errors.length > 0) {
+                console.error('File validation errors:', errors);
+                errors.forEach(error => showError(error));
+            }
+        }
+
+        // Reset file input
+        event.target.value = '';
+    };
+
+    const handleAddFilesClick = () => {
+        fileInputRef.current?.click();
+    };
+
+    const handleRemoveFile = (fileId: string) => {
+        send({ type: 'REMOVE_FILE', fileId });
+    };
+
+    // Drag & Drop handlers
+    const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
+        event.preventDefault();
+        event.stopPropagation();
+    };
+
+    const handleDragEnter = (event: React.DragEvent<HTMLDivElement>) => {
+        event.preventDefault();
+        event.stopPropagation();
+        send({ type: 'DRAG_ENTER' });
+    };
+
+    const handleDragLeave = (event: React.DragEvent<HTMLDivElement>) => {
+        event.preventDefault();
+        event.stopPropagation();
+        // Only trigger drag leave if we're leaving the main container
+        if (!event.currentTarget.contains(event.relatedTarget as Node)) {
+            send({ type: 'DRAG_LEAVE' });
+        }
+    };
+
+    const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
+        event.preventDefault();
+        event.stopPropagation();
+        send({ type: 'DRAG_LEAVE' });
+
+        const files = event.dataTransfer.files;
+        if (files.length > 0) {
+            const fileArray = fileListToArray(files);
+
+            // Validate files before adding
+            const { validFiles, errors } = validateFiles(fileArray, state.context.attachedFiles.length);
+
+            if (validFiles.length > 0) {
+                // Convert to AttachedFile objects
+                const attachedFiles = validFiles.map(createAttachedFile);
+
+                send({ type: 'ADD_FILES', files: attachedFiles });
+
+                // Start upload simulation for each file
+                attachedFiles.forEach(attachedFile => {
+                    simulateFileUpload(
+                        attachedFile.id,
+                        (fileId, progress) => {
+                            send({ type: 'UPDATE_FILE_PROGRESS', fileId, progress });
+                        },
+                        (fileId, uploadedUrl) => {
+                            send({ type: 'FILE_UPLOAD_SUCCESS', fileId, uploadedUrl });
+                        },
+                        (fileId, error) => {
+                            send({ type: 'FILE_UPLOAD_ERROR', fileId, error });
+                        }
+                    );
+                });
+            }
+
+            // Show errors if any
+            if (errors.length > 0) {
+                console.error('File validation errors:', errors);
+                errors.forEach(error => showError(error));
+            }
+        }
+    };
+
+    // Helper function to check if send is allowed
+    const canSend = () => {
+        const hasText = state.context.value.trim().length > 0;
+        const hasUploadingFiles = state.context.attachedFiles.some(file => file.uploadStatus === 'uploading');
+        const hasFailedFiles = state.context.attachedFiles.some(file => file.uploadStatus === 'error');
+
+        return hasText && !hasUploadingFiles && !hasFailedFiles && !disabled;
+    };
+
     const handleSend = () => {
-        if (!state.context.value.trim() || disabled) return;
+        if (!canSend()) {
+            // Show appropriate error message
+            if (!state.context.value.trim()) {
+                showError('Please enter a message before sending.', 'warning');
+            } else if (state.context.attachedFiles.some(file => file.uploadStatus === 'uploading')) {
+                showError('Please wait for files to finish uploading.', 'warning');
+            } else if (state.context.attachedFiles.some(file => file.uploadStatus === 'error')) {
+                showError('Please remove or re-upload failed files.', 'error');
+            }
+            return;
+        }
 
         send({ type: 'SEND' });
         onSend();
@@ -144,34 +447,27 @@ export const PromptInput: React.FC<PromptInputProps> = ({
 
     const isFocused = state.matches('focused') || state.matches('focusedAndHovered');
 
-    // Reusable send button component to avoid duplication
-    const SendButton: React.FC<{ onClick: () => void; disabled: boolean; color?: 'primary' | 'default' }> = ({ onClick, disabled, color = 'primary' }) => {
-
-        return (
-            <IconButton
-                onClick={onClick}
-                color={color as any}
-                disabled={disabled}
-                size="small"
-                sx={{
-                    transition: 'all 0.2s ease-in-out',
-                    '&:hover': {
-                        transform: !disabled ? 'scale(1.05)' : 'none',
-                    },
-                }}
-            >
-                <ArrowUpIcon />
-            </IconButton>
-        );
-    };
-
     return (
         <Box>
+            {/* Hidden File Input */}
+            <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                accept={FILE_UPLOAD_CONSTANTS.ALLOWED_TYPES.join(',')}
+                style={{ display: 'none' }}
+                onChange={handleFileSelect}
+            />
+
             {/* Main Input Container */}
             <Paper
                 elevation={0}
                 onMouseEnter={() => send({ type: 'HOVER' })}
                 onMouseLeave={() => send({ type: 'UNHOVER' })}
+                onDragOver={handleDragOver}
+                onDragEnter={handleDragEnter}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
                 sx={{
                     backgroundColor: getBackgroundColor(),
                     borderRadius: 8, // 24px based on cornerRadius-4
@@ -179,121 +475,71 @@ export const PromptInput: React.FC<PromptInputProps> = ({
                     transition: 'all 0.3s ease-in-out',
                     overflow: 'hidden',
                     boxShadow: theme.customShadows.promptInput,
+                    position: 'relative',
                     '&:hover': {
                         borderColor: !isFocused ? theme.vars.palette.primary.light : theme.vars.palette.primary.main,
                     },
+                    // Drag over styling
+                    ...(state.context.isDragOver && {
+                        borderColor: theme.vars.palette.primary.main,
+                        borderWidth: 2,
+                        backgroundColor: theme.vars.palette.action.hover,
+                    }),
                 }}
             >
                 <Box sx={{ p: 2 }}>
-                    {/* Text Input Area */}
-                    <Box sx={{
-                        display: 'flex',
-                        alignItems: 'flex-end',
-                        gap: 1,
-                        mb: state.context.mode === 'landing' ? 2 : 0
-                    }}>
-                        {/* Voice/Mic Button (Chat mode only) */}
-                        {state.context.mode === 'chat' && (
-                            <IconButton
-                                size="small"
-                                disabled
-                                sx={{
-                                    backgroundColor: theme.vars.palette.action.disabledBackground,
-                                    width: 32,
-                                    height: 32,
-                                    '&.Mui-disabled': {
-                                        backgroundColor: theme.vars.palette.action.disabledBackground,
-                                    }
-                                }}
-                            >
-                                <SparkleIcon size={20} color={theme.vars.palette.action.disabled} />
-                            </IconButton>
-                        )}
-
-                        {/* Text Field */}
-                        <InputBase
-                            ref={textFieldRef}
-                            fullWidth
-                            multiline
-                            maxRows={6}
-                            minRows={state.context.mode === 'chat' ? 1 : 1}
-                            placeholder={placeholder}
-                            value={state.context.value}
-                            onChange={handleInputChange}
-                            onKeyDown={handleKeyPress}
-                            onFocus={() => send({ type: 'FOCUS' })}
-                            onBlur={() => send({ type: 'BLUR' })}
-                            disabled={disabled}
-                            sx={{
-                                fontSize: '0.875rem', // 14px
-                                lineHeight: 1.7,
-                                fontFamily: theme.typography.fontFamily,
-                                '& textarea': {
-                                    resize: 'none',
-
-                                },
-                            }}
-                        />
-
-                        {/* Attachment Button (visible in some modes) */}
-                        {state.context.mode === 'chat' && (
-                            <IconButton
-                                size="small"
-                                sx={{
-                                    width: 32,
-                                    height: 32,
-                                    color: theme.vars.palette.text.secondary,
-                                    '&:hover': {
-                                        backgroundColor: theme.vars.palette.action.hover,
-                                    }
-                                }}
-                            >
-                                <PaperclipIcon size={20} />
-                            </IconButton>
-                        )}
-                    </Box>
-
-                    {/* Footer - Send button and suggestions (Landing mode) */}
-                    {state.context.mode === 'landing' && (
+                    {/* File Attachments Area */}
+                    {state.context.attachedFiles.length > 0 && (
                         <Box sx={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            gap: 2
+                            mt: 2,
+                            mb: state.context.mode === 'landing' ? 2 : 0
                         }}>
-                            {/* Suggestion Chips */}
                             <Box sx={{
                                 display: 'flex',
-                                gap: 2,
-                                flex: 1,
-                                justifyContent: 'flex-start',
-                                flexWrap: 'wrap'
+                                gap: 3,
+                                overflowX: 'auto',
+                                pb: 1,
                             }}>
-                                {SUGGESTION_CHIPS.map((suggestion) => {
-                                    const isActive = state.context.activeChipId === suggestion.id;
-                                    return (
-                                        <Chip
-                                            key={suggestion.id}
-                                            label={suggestion.label}
-                                            icon={suggestion.icon}
-                                            variant={isActive ? "selected" : "outlined"}
-                                            size="small"
-                                            onClick={() => handleSuggestionClick(suggestion.id)}
+                                {state.context.attachedFiles.map((file) => (
+                                    <Box key={file.id} sx={{ flexShrink: 0 }}>
+                                        <FileAttachment
+                                            fileName={file.fileName}
+                                            mimeType={file.mimeType}
+                                            uploading={file.uploadStatus === 'uploading'}
+                                            uploadProgress={file.uploadProgress}
+                                            onRemove={() => handleRemoveFile(file.id)}
                                         />
-                                    );
-                                })}
+                                    </Box>
+                                ))}
                             </Box>
-
-                            {/* Send Button */}
-                            <SendButton onClick={handleSend} disabled={!state.context.value.trim() || disabled} color="primary" />
                         </Box>
                     )}
 
-                    {/* Chat mode send button */}
-                    {state.context.mode === 'chat' && (
-                        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1 }}>
-                            <SendButton onClick={handleSend} disabled={!state.context.value.trim() || disabled} color="primary" />
-                        </Box>
+                    {/* Main Input Row */}
+                    <InputRow
+                        state={state}
+                        send={send}
+                        placeholder={placeholder}
+                        handleInputChange={handleInputChange}
+                        handleKeyPress={handleKeyPress}
+                        handleAddFilesClick={handleAddFilesClick}
+                        textFieldRef={textFieldRef}
+                        disabled={disabled}
+                        canSend={canSend}
+                        handleSend={handleSend}
+                        theme={theme}
+                    />
+
+
+                    {/* Footer for Landing Mode */}
+                    {state.context.mode === 'landing' && (
+                        <LandingFooter
+                            state={state}
+                            handleAddFilesClick={handleAddFilesClick}
+                            handleSuggestionClick={handleSuggestionClick}
+                            canSend={canSend}
+                            handleSend={handleSend}
+                        />
                     )}
                 </Box>
             </Paper>
@@ -313,6 +559,23 @@ export const PromptInput: React.FC<PromptInputProps> = ({
                     {state.context.helperText}
                 </Typography>
             )}
+
+            {/* Snackbar for error notifications */}
+            <Snackbar
+                open={snackbarOpen}
+                autoHideDuration={6000}
+                onClose={() => setSnackbarOpen(false)}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+            >
+                <Alert
+                    onClose={() => setSnackbarOpen(false)}
+                    severity={snackbarSeverity}
+                    variant="filled"
+                    sx={{ width: '100%' }}
+                >
+                    {snackbarMessage}
+                </Alert>
+            </Snackbar>
         </Box>
     );
 };
