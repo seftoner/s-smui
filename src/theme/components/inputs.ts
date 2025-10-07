@@ -1,23 +1,25 @@
-// Input and form component overrides
+import type {} from '@mui/material/themeCssVarsAugmentation';
+
+// Input component overrides
 export const inputOverrides = {
   MuiTextField: {
     styleOverrides: {
-      root: () => ({
+      root: ({ theme }: { theme: any }) => ({
         '& .MuiOutlinedInput-root': {
           borderRadius: 8, // cornerRadius-2
-          backgroundColor: 'var(--mui-palette-components-input-background, var(--mui-palette-background-surface-3, var(--mui-palette-background-paper)))',
-          boxShadow: 'var(--mui-shadows-1, none)',
+          backgroundColor: theme.vars.palette.components?.input?.background || theme.vars.palette.background.paper,
+          boxShadow: theme.vars.shadows?.[1] || 'none',
           '& fieldset': {
-            borderColor: 'var(--mui-palette-components-input-enabled)',
+            borderColor: theme.vars.palette.components?.input?.enabled || theme.vars.palette.divider,
           },
           '&:hover fieldset': {
-            borderColor: 'var(--mui-palette-primary-light)'
+            borderColor: theme.vars.palette.primary.light
           },
           '&.Mui-focused fieldset': {
-            borderColor: 'var(--mui-palette-primary-main)',
+            borderColor: theme.vars.palette.primary.main,
           },
           '&.Mui-disabled fieldset': {
-            borderColor: 'var(--mui-palette-action-disabled)',
+            borderColor: theme.vars.palette.action.disabled,
           },
         },
       }),

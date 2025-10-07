@@ -1,3 +1,6 @@
+import type {} from '@mui/material/themeCssVarsAugmentation';
+import type { Theme } from '@mui/material/styles';
+
 // Feedback component overrides
 export const feedbackOverrides = {
   MuiAlert: {
@@ -10,8 +13,11 @@ export const feedbackOverrides = {
           lineHeight: 1.5,
           letterSpacing: '0.0094em',
         },
+        '& .MuiAlertTitle-root + .MuiAlert-message': {
+          paddingTop: 0,
+        },
         '& .MuiAlert-message': {
-          fontFamily: 'Noto Kufi Arabic, Helvetica, Arial, sans-serif',
+          fontFamily: 'Alexandria, Helvetica, Arial, sans-serif',
           fontWeight: 500,
           fontSize: 14,
           lineHeight: 1.43,
@@ -45,9 +51,9 @@ export const feedbackOverrides = {
   },
   MuiTooltip: {
     styleOverrides: {
-      tooltip: () => ({
+      tooltip: ({ theme }: { theme: Theme }) => ({
         backgroundColor: 'var(--mui-palette-components-tooltip-fill)',
-        color: 'var(--mui-palette-primary-contrastText)',
+        color: theme.vars.palette.primary.contrastText,
         fontFamily: 'Noto Kufi Arabic, Helvetica, Arial, sans-serif',
         fontWeight: 500,
         fontSize: 10,

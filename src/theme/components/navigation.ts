@@ -1,4 +1,6 @@
-// Navigation and list component overrides
+import type {} from '@mui/material/themeCssVarsAugmentation';
+
+// Navigation component overrides
 export const navigationOverrides = {
   MuiListItemButton: {
     styleOverrides: {
@@ -9,34 +11,34 @@ export const navigationOverrides = {
   },
   MuiListItemIcon: {
     styleOverrides: {
-      root: {
+      root: ({ theme }: { theme: any }) => ({
         minWidth: 32,
-        color: 'var(--mui-palette-components-listItem-iconEnabled, var(--mui-palette-text-primary))',
-      },
+        color: theme.vars.palette.components?.listItem?.iconEnabled || theme.vars.palette.text.primary,
+      }),
     },
   },
   MuiListItem: {
     styleOverrides: {
-      root: {
+      root: ({ theme }: { theme: any }) => ({
         borderRadius: 8, // cornerRadius-2
         '&:hover': {
-          backgroundColor: 'var(--mui-palette-action-hover, transparent)',
+          backgroundColor: theme.vars.palette.action.hover,
         },
         '&.Mui-selected': {
-          backgroundColor: 'var(--mui-palette-action-selected, transparent)',
+          backgroundColor: theme.vars.palette.action.selected,
           '&:hover': {
-            backgroundColor: 'var(--mui-palette-action-selected, transparent)',
+            backgroundColor: theme.vars.palette.action.selected,
           },
         },
         '&.Mui-focusVisible': {
-          backgroundColor: 'var(--mui-palette-action-focus, transparent)',
-          outline: '2px solid var(--mui-palette-primary-main, currentColor)',
+          backgroundColor: theme.vars.palette.action.focus,
+          outline: `2px solid ${theme.vars.palette.primary.main}`,
         },
         '&.Mui-disabled': {
-          backgroundColor: 'var(--mui-palette-action-disabledBackground, transparent)',
-          color: 'var(--mui-palette-action-disabled, var(--mui-palette-text-disabled))',
+          backgroundColor: theme.vars.palette.action.disabledBackground,
+          color: theme.vars.palette.action.disabled,
         },
-      },
+      }),
     },
   },
   MuiListSubheader: {

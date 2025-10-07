@@ -1,3 +1,5 @@
+import type {} from '@mui/material/themeCssVarsAugmentation';
+
 // Button component overrides
 
 export const buttonOverrides = {
@@ -36,13 +38,13 @@ export const buttonOverrides = {
           boxShadow: '0px 2px 4px rgba(59, 107, 246, 0.12)',
         },
       },
-      outlined: {
-        borderColor: 'rgba(var(--mui-palette-primary-mainChannel) / 0.5)',
+      outlined: ({ theme }: { theme: any }) => ({
+        borderColor: `rgba(${theme.vars.palette.primary.mainChannel} / 0.5)`,
         '&:hover': {
-          borderColor: 'var(--mui-palette-primary-main)',
-          backgroundColor: 'rgba(var(--mui-palette-primary-mainChannel) / 0.06)',
+          borderColor: theme.vars.palette.primary.main,
+          backgroundColor: `rgba(${theme.vars.palette.primary.mainChannel} / 0.06)`,
         },
-      },
+      }),
     },
   },
   MuiIconButton: {
@@ -61,20 +63,20 @@ export const buttonOverrides = {
       },
     ],
     styleOverrides: {
-      root: {
+      root: ({ theme }: { theme: any }) => ({
         borderRadius: 8,
         padding: 12, // Default padding for large
         '&:hover': {
-          backgroundColor: 'var(--mui-palette-action-hover)',
+          backgroundColor: theme.vars.palette.action.hover,
         },
         '&.Mui-focusVisible': {
-          backgroundColor: 'var(--mui-palette-action-focus)',
+          backgroundColor: theme.vars.palette.action.focus,
         },
         '&.Mui-disabled': {
           backgroundColor: 'transparent',
-          color: 'var(--mui-palette-action-disabled)',
+          color: theme.vars.palette.action.disabled,
         },
-      },
+      }),
       sizeLarge: {
         width: 48,
         height: 48,
@@ -100,41 +102,41 @@ export const buttonOverrides = {
         },
       },
       // Color variants
-      colorPrimary: {
-        backgroundColor: 'var(--mui-palette-primary-main)',
-        color: 'var(--mui-palette-primary-contrastText)',
+      colorPrimary: ({ theme }: { theme: any }) => ({
+        backgroundColor: theme.vars.palette.primary.main,
+        color: theme.vars.palette.primary.contrastText,
         borderRadius: '50%', 
         '&:hover': {
-          backgroundColor: 'var(--mui-palette-primary-dark)',
+          backgroundColor: theme.vars.palette.primary.dark,
         },
         '&.Mui-focusVisible': {
-          backgroundColor: 'var(--mui-palette-primary-main)',
-          outline: `2px solid var(--mui-palette-primary-light)`,
+          backgroundColor: theme.vars.palette.primary.main,
+          outline: `2px solid ${theme.vars.palette.primary.light}`,
         },
         '&:active': {
-          backgroundColor: 'var(--mui-palette-primary-dark)',
+          backgroundColor: theme.vars.palette.primary.dark,
         },
         '&.Mui-disabled': {
-          backgroundColor: 'var(--mui-palette-action-disabled)',
-          color: 'var(--mui-palette-action-disabled)',
+          backgroundColor: theme.vars.palette.action.disabledBackground,
+          color: theme.vars.palette.action.disabled,
         },
-      },
+      }),
 
-      colorError: {
-        backgroundColor: 'var(--mui-palette-error-main)',
-        color: 'var(--mui-palette-error-contrastText)',
+      colorError: ({ theme }: { theme: any }) => ({
+        backgroundColor: theme.vars.palette.error.main,
+        color: theme.vars.palette.error.contrastText,
         borderRadius: '50%',
         '&:hover': {
-          backgroundColor: 'var(--mui-palette-error-dark)',
+          backgroundColor: theme.vars.palette.error.dark,
         },
         '&.Mui-focusVisible': {
-          backgroundColor: 'var(--mui-palette-error-main)',
-          outline: `2px solid var(--mui-palette-error-light)`,
+          backgroundColor: theme.vars.palette.error.main,
+          outline: `2px solid ${theme.vars.palette.error.light}`,
         },
         '&:active': {
-          backgroundColor: 'var(--mui-palette-error-dark)',
+          backgroundColor: theme.vars.palette.error.dark,
         },
-      },
+      }),
     },
   },
 };

@@ -1,4 +1,5 @@
-import React, { useState, useRef } from 'react';
+import type { } from '@mui/material/themeCssVarsAugmentation';
+import React, { useRef } from 'react';
 import {
     Box,
     InputBase,
@@ -16,9 +17,133 @@ import {
     PaperclipIcon,
     ArrowUpIcon,
 } from '@phosphor-icons/react';
+import { createMachine, assign } from 'xstate';
+import { useMachine } from '@xstate/react';
+
+// State machine definition for PromptInput
+const promptInputMachine = createMachine({
+    id: 'promptInput',
+    initial: 'idle',
+    context: {
+        value: '',
+        error: false,
+        helperText: '',
+        mode: 'landing' as 'landing' | 'chat',
+    },
+    states: {
+        idle: {
+            on: {
+                FOCUS: 'focused',
+                HOVER: 'hovered',
+                SET_VALUE: {
+                    actions: assign({
+                        value: ({ event }) => event.value,
+                    }),
+                },
+                SET_ERROR: {
+                    actions: assign({
+                        error: ({ event }) => event.error,
+                        helperText: ({ event }) => event.helperText || '',
+                    }),
+                },
+                SET_MODE: {
+                    actions: assign({
+                        mode: ({ event }) => event.mode,
+                    }),
+                },
+            },
+        },
+        hovered: {
+            on: {
+                FOCUS: 'focused',
+                UNHOVER: 'idle',
+                SET_VALUE: {
+                    actions: assign({
+                        value: ({ event }) => event.value,
+                    }),
+                },
+                SET_ERROR: {
+                    actions: assign({
+                        error: ({ event }) => event.error,
+                        helperText: ({ event }) => event.helperText || '',
+                    }),
+                },
+                SET_MODE: {
+                    actions: assign({
+                        mode: ({ event }) => event.mode,
+                    }),
+                },
+            },
+        },
+        focused: {
+            on: {
+                BLUR: 'idle',
+                HOVER: 'focusedAndHovered',
+                UNHOVER: 'focused',
+                SEND: 'sending',
+                SET_VALUE: {
+                    actions: assign({
+                        value: ({ event }) => event.value,
+                    }),
+                },
+                SET_ERROR: {
+                    actions: assign({
+                        error: ({ event }) => event.error,
+                        helperText: ({ event }) => event.helperText || '',
+                    }),
+                },
+                SET_MODE: {
+                    actions: assign({
+                        mode: ({ event }) => event.mode,
+                    }),
+                },
+            },
+        },
+        focusedAndHovered: {
+            on: {
+                BLUR: 'hovered',
+                UNHOVER: 'focused',
+                SEND: 'sending',
+                SET_VALUE: {
+                    actions: assign({
+                        value: ({ event }) => event.value,
+                    }),
+                },
+                SET_ERROR: {
+                    actions: assign({
+                        error: ({ event }) => event.error,
+                        helperText: ({ event }) => event.helperText || '',
+                    }),
+                },
+                SET_MODE: {
+                    actions: assign({
+                        mode: ({ event }) => event.mode,
+                    }),
+                },
+            },
+        },
+        sending: {
+            on: {
+                SEND_SUCCESS: 'idle',
+                SEND_ERROR: {
+                    target: 'idle',
+                    actions: assign({
+                        error: () => true,
+                        helperText: ({ event }) => event.message || 'Failed to send message',
+                    }),
+                },
+                SET_MODE: {
+                    actions: assign({
+                        mode: ({ event }) => event.mode,
+                    }),
+                },
+            },
+        },
+    },
+});
 
 interface PromptInputProps {
-    value: string;
+    value?: string;
     onChange: (value: string) => void;
     onSend: () => void;
     disabled?: boolean;
@@ -50,32 +175,73 @@ const SUGGESTION_CHIPS: SuggestionChip[] = [
 ];
 
 export const PromptInput: React.FC<PromptInputProps> = ({
-    value,
+    value: externalValue,
     onChange,
     onSend,
     disabled = false,
     placeholder = "Ask me anything...",
-    mode = 'landing',
-    error = false,
-    helperText,
+    mode: externalMode = 'landing',
+    error: externalError = false,
+    helperText: externalHelperText,
 }) => {
     const theme = useTheme();
-    const [isFocused, setIsFocused] = useState(false);
-    const [isHovered, setIsHovered] = useState(false);
     const textFieldRef = useRef<HTMLDivElement>(null);
+
+    // Initialize the state machine
+    const [state, send] = useMachine(promptInputMachine);
+
+    // Sync external value changes with the machine
+    React.useEffect(() => {
+        if (externalValue !== undefined && externalValue !== state.context.value) {
+            send({ type: 'SET_VALUE', value: externalValue });
+        }
+    }, [externalValue, state.context.value, send]);
+
+    // Sync external mode changes with the machine
+    React.useEffect(() => {
+        if (externalMode !== state.context.mode) {
+            send({ type: 'SET_MODE', mode: externalMode });
+        }
+    }, [externalMode, state.context.mode, send]);
+
+    // Sync external error state with the machine
+    React.useEffect(() => {
+        if (externalError !== state.context.error || externalHelperText !== state.context.helperText) {
+            send({
+                type: 'SET_ERROR',
+                error: externalError,
+                helperText: externalHelperText || ''
+            });
+        }
+    }, [externalError, externalHelperText, state.context.error, state.context.helperText, send]);
 
     const handleKeyPress = (event: React.KeyboardEvent) => {
         if (event.key === 'Enter' && !event.shiftKey && !disabled) {
             event.preventDefault();
-            onSend();
+            handleSend();
         }
     };
 
     const handleInputChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        onChange(event.target.value);
+        const newValue = event.target.value;
+        send({ type: 'SET_VALUE', value: newValue });
+        onChange(newValue);
+    };
+
+    const handleSend = () => {
+        if (!state.context.value.trim() || disabled) return;
+
+        send({ type: 'SEND' });
+        onSend();
+
+        // Simulate async operation - in real app this would be handled by the parent
+        setTimeout(() => {
+            send({ type: 'SEND_SUCCESS' });
+        }, 100);
     };
 
     const handleSuggestionClick = (suggestion: string) => {
+        send({ type: 'SET_VALUE', value: suggestion });
         onChange(suggestion);
         // Focus the input after clicking a suggestion
         setTimeout(() => {
@@ -89,16 +255,30 @@ export const PromptInput: React.FC<PromptInputProps> = ({
     };
 
     const getBorderColor = () => {
-        if (error) return 'var(--mui-palette-error-main)';
-        if (isFocused) return 'var(--mui-palette-primary-main)';
-        if (isHovered) return 'var(--mui-palette-primary-light)';
-        return 'var(--mui-palette-divider)';
+        if (state.context.error) return theme.vars.palette.error.main;
+        if (state.matches('focused') || state.matches('focusedAndHovered')) return theme.vars.palette.primary.main;
+        if (state.matches('hovered') || state.matches('focusedAndHovered')) return theme.vars.palette.primary.light;
+        return theme.vars.palette.divider;
     };
 
     const getBackgroundColor = () => {
-        if (mode === 'chat') return 'var(--mui-palette-background-default)';
-        return 'var(--mui-palette-background-paper)';
+        if (state.context.mode === 'chat') return theme.vars.palette.background.default;
+        return theme.vars.palette.background.paper;
     };
+
+    const isFocused = state.matches('focused') || state.matches('focusedAndHovered');
+
+    // Expose mode switching functions for external control
+    const switchToLandingMode = () => send({ type: 'SET_MODE', mode: 'landing' });
+    const switchToChatMode = () => send({ type: 'SET_MODE', mode: 'chat' });
+
+    // You could expose these functions via useImperativeHandle if needed:
+    // React.useImperativeHandle(ref, () => ({
+    //     switchToLandingMode,
+    //     switchToChatMode,
+    //     getCurrentMode: () => state.context.mode,
+    //     getCurrentState: () => state.value,
+    // }), [state]);
 
     // Reusable send button component to avoid duplication
     const SendButton: React.FC<{ onClick: () => void; disabled: boolean; color?: 'primary' | 'default' }> = ({ onClick, disabled, color = 'primary' }) => {
@@ -126,8 +306,8 @@ export const PromptInput: React.FC<PromptInputProps> = ({
             {/* Main Input Container */}
             <Paper
                 elevation={0}
-                onMouseEnter={() => setIsHovered(true)}
-                onMouseLeave={() => setIsHovered(false)}
+                onMouseEnter={() => send({ type: 'HOVER' })}
+                onMouseLeave={() => send({ type: 'UNHOVER' })}
                 sx={{
                     backgroundColor: getBackgroundColor(),
                     borderRadius: 8, // 24px based on cornerRadius-4
@@ -139,7 +319,7 @@ export const PromptInput: React.FC<PromptInputProps> = ({
                         0px 4px 16px -2px rgba(100, 75, 27, 0.08)
                     `,
                     '&:hover': {
-                        borderColor: !isFocused ? theme.vars?.palette?.primary?.light : theme.vars?.palette?.primary?.main,
+                        borderColor: !isFocused ? theme.vars.palette.primary.light : theme.vars.palette.primary.main,
                     },
                 }}
             >
@@ -149,23 +329,23 @@ export const PromptInput: React.FC<PromptInputProps> = ({
                         display: 'flex',
                         alignItems: 'flex-end',
                         gap: 1,
-                        mb: mode === 'landing' ? 2 : 0
+                        mb: state.context.mode === 'landing' ? 2 : 0
                     }}>
                         {/* Voice/Mic Button (Chat mode only) */}
-                        {mode === 'chat' && (
+                        {state.context.mode === 'chat' && (
                             <IconButton
                                 size="small"
                                 disabled
                                 sx={{
-                                    backgroundColor: theme.vars?.palette?.action?.disabledBackground,
+                                    backgroundColor: theme.vars.palette.action.disabledBackground,
                                     width: 32,
                                     height: 32,
                                     '&.Mui-disabled': {
-                                        backgroundColor: theme.vars?.palette?.action?.disabledBackground,
+                                        backgroundColor: theme.vars.palette.action.disabledBackground,
                                     }
                                 }}
                             >
-                                <SparkleIcon size={20} color={theme.vars?.palette?.action?.disabled} />
+                                <SparkleIcon size={20} color={theme.vars.palette.action.disabled} />
                             </IconButton>
                         )}
 
@@ -175,13 +355,13 @@ export const PromptInput: React.FC<PromptInputProps> = ({
                             fullWidth
                             multiline
                             maxRows={6}
-                            minRows={mode === 'chat' ? 1 : 1}
+                            minRows={state.context.mode === 'chat' ? 1 : 1}
                             placeholder={placeholder}
-                            value={value}
+                            value={state.context.value}
                             onChange={handleInputChange}
                             onKeyDown={handleKeyPress}
-                            onFocus={() => setIsFocused(true)}
-                            onBlur={() => setIsFocused(false)}
+                            onFocus={() => send({ type: 'FOCUS' })}
+                            onBlur={() => send({ type: 'BLUR' })}
                             disabled={disabled}
                             sx={{
                                 fontSize: '0.875rem', // 14px
@@ -195,15 +375,15 @@ export const PromptInput: React.FC<PromptInputProps> = ({
                         />
 
                         {/* Attachment Button (visible in some modes) */}
-                        {mode === 'chat' && (
+                        {state.context.mode === 'chat' && (
                             <IconButton
                                 size="small"
                                 sx={{
                                     width: 32,
                                     height: 32,
-                                    color: theme.vars?.palette?.text?.secondary,
+                                    color: theme.vars.palette.text.secondary,
                                     '&:hover': {
-                                        backgroundColor: theme.vars?.palette?.action?.hover,
+                                        backgroundColor: theme.vars.palette.action.hover,
                                     }
                                 }}
                             >
@@ -213,7 +393,7 @@ export const PromptInput: React.FC<PromptInputProps> = ({
                     </Box>
 
                     {/* Footer - Send button and suggestions (Landing mode) */}
-                    {mode === 'landing' && (
+                    {state.context.mode === 'landing' && (
                         <Box sx={{
                             display: 'flex',
                             alignItems: 'center',
@@ -240,16 +420,16 @@ export const PromptInput: React.FC<PromptInputProps> = ({
                                         sx={{
                                             fontSize: '0.8125rem', // 13px
                                             fontFamily: theme.typography.fontFamily,
-                                            backgroundColor: theme.vars?.palette?.background?.default,
-                                            borderColor: theme.vars?.palette?.divider,
-                                            color: theme.vars?.palette?.text?.primary,
+                                            backgroundColor: theme.vars.palette.background.default,
+                                            borderColor: theme.vars.palette.divider,
+                                            color: theme.vars.palette.text.primary,
                                             '& .MuiChip-icon': {
-                                                color: theme.vars?.palette?.text?.secondary,
+                                                color: theme.vars.palette.text.secondary,
                                                 fontSize: '0.875rem',
                                             },
                                             '&:hover': {
-                                                backgroundColor: theme.vars?.palette?.action?.hover,
-                                                borderColor: theme.vars?.palette?.primary?.light,
+                                                backgroundColor: theme.vars.palette.action.hover,
+                                                borderColor: theme.vars.palette.primary.light,
                                                 transform: 'translateY(-1px)',
                                             },
                                             transition: 'all 0.2s ease-in-out',
@@ -259,24 +439,24 @@ export const PromptInput: React.FC<PromptInputProps> = ({
                             </Box>
 
                             {/* Send Button */}
-                            <SendButton onClick={onSend} disabled={!value.trim() || disabled} color="primary" />
+                            <SendButton onClick={handleSend} disabled={!state.context.value.trim() || disabled} color="primary" />
                         </Box>
                     )}
 
                     {/* Chat mode send button */}
-                    {mode === 'chat' && (
+                    {state.context.mode === 'chat' && (
                         <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1 }}>
-                            <SendButton onClick={onSend} disabled={!value.trim() || disabled} color="primary" />
+                            <SendButton onClick={handleSend} disabled={!state.context.value.trim() || disabled} color="primary" />
                         </Box>
                     )}
                 </Box>
             </Paper>
 
             {/* Helper Text */}
-            {helperText && (
+            {state.context.helperText && (
                 <Typography
                     variant="caption"
-                    color={error ? "error" : "text.secondary"}
+                    color={state.context.error ? "error" : "text.secondary"}
                     sx={{
                         display: 'block',
                         mt: 0.5,
@@ -284,7 +464,7 @@ export const PromptInput: React.FC<PromptInputProps> = ({
                         px: 1
                     }}
                 >
-                    {helperText}
+                    {state.context.helperText}
                 </Typography>
             )}
         </Box>
