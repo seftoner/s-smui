@@ -48,6 +48,11 @@ export const buttonOverrides = {
     },
   },
   MuiIconButton: {
+    defaultProps: {
+      TouchRippleProps: {
+        center: false,
+      },
+    },
     variants: [
       {
         props: { size: 'xsmall' as const },
