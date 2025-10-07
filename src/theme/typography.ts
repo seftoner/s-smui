@@ -61,7 +61,7 @@ export const typography = {
     fontFamily: 'Noto Kufi Arabic, Helvetica, Arial, sans-serif',
     fontWeight: 600,
     fontSize: 14,
-    lineHeight: 1.57,
+    lineHeight: '157%',
     letterSpacing: '0.0071em',
   },
   body1: {
@@ -90,7 +90,7 @@ export const typography = {
     fontFamily: 'Noto Kufi Arabic, Helvetica, Arial, sans-serif',
     fontSize: 12,
     fontWeight: 400,
-    lineHeight: 1.5,
+    lineHeight: '150%',
     letterSpacing: '0.0083em',
   },
   overline: {

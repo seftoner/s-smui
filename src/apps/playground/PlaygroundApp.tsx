@@ -54,6 +54,7 @@ import {
     useTheme,
 } from '@mui/material';
 import { useThemeMode } from '../../contexts';
+import { FileAttachment } from '../../components/shared';
 import {
     Home,
     Settings,
@@ -559,6 +560,106 @@ export const PlaygroundApp: React.FC = () => {
                             </Typography>
                         </AccordionDetails>
                     </Accordion>
+                </ComponentSection>
+
+                {/* File Attachments */}
+                <ComponentSection title="File Attachments">
+                    <Typography variant="h6" gutterBottom>
+                        Document Files
+                    </Typography>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mb: 3 }}>
+                        <FileAttachment
+                            fileName="National Health Services Policy Overview.pdf"
+                            mimeType="application/pdf"
+                            onRemove={() => console.log('Remove PDF file')}
+                        />
+                        <FileAttachment
+                            fileName="Annual Report 2024.docx"
+                            mimeType="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                            onRemove={() => console.log('Remove Word file')}
+                        />
+                        <FileAttachment
+                            fileName="Meeting Notes.txt"
+                            mimeType="text/plain"
+                            onRemove={() => console.log('Remove text file')}
+                        />
+                    </Box>
+
+                    <Typography variant="h6" gutterBottom>
+                        Code Files
+                    </Typography>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mb: 3 }}>
+                        <FileAttachment
+                            fileName="app.tsx"
+                            mimeType="text/x-typescript"
+                            onRemove={() => console.log('Remove TypeScript file')}
+                        />
+                        <FileAttachment
+                            fileName="config.json"
+                            mimeType="application/json"
+                            onRemove={() => console.log('Remove JSON file')}
+                        />
+                    </Box>
+
+                    <Typography variant="h6" gutterBottom>
+                        Archive & Spreadsheet Files
+                    </Typography>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mb: 3 }}>
+                        <FileAttachment
+                            fileName="project-backup.zip"
+                            mimeType="application/zip"
+                            onRemove={() => console.log('Remove ZIP file')}
+                        />
+                        <FileAttachment
+                            fileName="data-export.csv"
+                            mimeType="text/csv"
+                            onRemove={() => console.log('Remove CSV file')}
+                        />
+                    </Box>
+
+                    <Typography variant="h6" gutterBottom>
+                        Upload States
+                    </Typography>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mb: 3 }}>
+                        <FileAttachment
+                            fileName="large-file.pdf"
+                            mimeType="application/pdf"
+                            uploading={true}
+                            uploadProgress={65}
+                        />
+                        <FileAttachment
+                            fileName="processing-data.csv"
+                            mimeType="text/csv"
+                            uploading={true}
+                        />
+                    </Box>
+
+                    <Typography variant="h6" gutterBottom>
+                        Image Files (Compact Mode)
+                    </Typography>
+                    <Box sx={{ display: 'flex', flexDirection: 'row', gap: 1, flexWrap: 'wrap' }}>
+                        <FileAttachment
+                            fileName="screenshot.png"
+                            mimeType="image/png"
+                            compact={true}
+                            onRemove={() => console.log('Remove image 1')}
+                            imagePreview="https://via.placeholder.com/200x200/3B82F6/FFFFFF?text=IMG"
+                        />
+                        <FileAttachment
+                            fileName="photo.jpg"
+                            mimeType="image/jpeg"
+                            compact={true}
+                            onRemove={() => console.log('Remove image 2')}
+                            imagePreview="https://via.placeholder.com/200x200/10B981/FFFFFF?text=JPG"
+                        />
+                        <FileAttachment
+                            fileName="upload.png"
+                            mimeType="image/png"
+                            compact={true}
+                            uploading={true}
+                            uploadProgress={25}
+                        />
+                    </Box>
                 </ComponentSection>
             </Box>
 
