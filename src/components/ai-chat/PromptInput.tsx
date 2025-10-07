@@ -106,14 +106,13 @@ const InputRow: React.FC<{
     disabled,
     canSend,
     handleSend,
-    theme
 }) => {
         const isChat = state.context.mode === 'chat';
 
         return (
             <Box sx={{
                 display: 'flex',
-                alignItems: 'flex-end',
+                alignItems: 'center',
                 gap: 1,
                 mb: isChat ? 0 : 2
             }}>
