@@ -45,6 +45,11 @@ const staticShadows = [
   '0px 144px 288px rgba(16,24,40,0.46), 0px 72px 144px rgba(16,24,40,0.50)',
 ] as any;
 
+// Named custom shadows
+const customShadows = {
+  promptInput: '0 34px 9px 0 rgba(12, 27, 100, 0.00), 0 22px 9px 0 rgba(12, 27, 100, 0.01), 0 12px 7px 0 rgba(12, 27, 100, 0.03), 0 5px 5px 0 rgba(12, 27, 100, 0.04), 0 1px 3px 0 rgba(12, 27, 100, 0.05)',
+};
+
 // Create theme with CSS variables for instant theme switching
 export const theme = createTheme({
   cssVariables: {
@@ -67,6 +72,8 @@ export const theme = createTheme({
   shape: staticShape,
   breakpoints: staticBreakpoints,
   shadows: staticShadows,
-});
+  // Add custom shadows to make them accessible via theme.customShadows
+  customShadows,
+} as any);
 
 export default theme;

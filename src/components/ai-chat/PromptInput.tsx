@@ -178,10 +178,7 @@ export const PromptInput: React.FC<PromptInputProps> = ({
                     border: `1px solid ${getBorderColor()}`,
                     transition: 'all 0.3s ease-in-out',
                     overflow: 'hidden',
-                    boxShadow: `
-                        0px 8px 12px 1px rgba(166, 126, 48, 0.1),
-                        0px 4px 16px -2px rgba(100, 75, 27, 0.08)
-                    `,
+                    boxShadow: theme.customShadows.promptInput,
                     '&:hover': {
                         borderColor: !isFocused ? theme.vars.palette.primary.light : theme.vars.palette.primary.main,
                     },

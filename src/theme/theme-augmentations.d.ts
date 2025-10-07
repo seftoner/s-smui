@@ -3,6 +3,21 @@ import type { ComponentsOverrides, ComponentsVariants } from '@mui/material/styl
 
 // Augment MUI theme types to include our custom properties
 
+// Augment Theme to support customShadows
+declare module '@mui/material/styles' {
+  interface Theme {
+    customShadows: {
+      promptInput: string;
+    };
+  }
+
+  interface ThemeOptions {
+    customShadows?: {
+      promptInput?: string;
+    };
+  }
+}
+
 // Augment IconButton to support our custom xsmall size
 declare module '@mui/material/IconButton' {
   interface IconButtonPropsSizeOverrides {
