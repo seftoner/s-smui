@@ -34,6 +34,7 @@ export const promptInputMachine = createMachine({
     error: false,
     helperText: '',
     mode: 'landing',
+    activeChipId: null,
   } as PromptInputContext,
   states: {
     idle: {
@@ -56,6 +57,17 @@ export const promptInputMachine = createMachine({
             mode: ({ event }) => event.mode,
           }),
         },
+        SELECT_CHIP: {
+          actions: assign({
+            activeChipId: ({ event, context }) => 
+              context.activeChipId === event.chipId ? null : event.chipId, // Toggle: deselect if already selected
+          }),
+        },
+        DESELECT_CHIP: {
+          actions: assign({
+            activeChipId: () => null,
+          }),
+        },
       },
     },
     hovered: {
@@ -76,6 +88,17 @@ export const promptInputMachine = createMachine({
         SET_MODE: {
           actions: assign({
             mode: ({ event }) => event.mode,
+          }),
+        },
+        SELECT_CHIP: {
+          actions: assign({
+            activeChipId: ({ event, context }) => 
+              context.activeChipId === event.chipId ? null : event.chipId,
+          }),
+        },
+        DESELECT_CHIP: {
+          actions: assign({
+            activeChipId: () => null,
           }),
         },
       },
@@ -102,6 +125,17 @@ export const promptInputMachine = createMachine({
             mode: ({ event }) => event.mode,
           }),
         },
+        SELECT_CHIP: {
+          actions: assign({
+            activeChipId: ({ event, context }) => 
+              context.activeChipId === event.chipId ? null : event.chipId,
+          }),
+        },
+        DESELECT_CHIP: {
+          actions: assign({
+            activeChipId: () => null,
+          }),
+        },
       },
     },
     focusedAndHovered: {
@@ -125,6 +159,17 @@ export const promptInputMachine = createMachine({
             mode: ({ event }) => event.mode,
           }),
         },
+        SELECT_CHIP: {
+          actions: assign({
+            activeChipId: ({ event, context }) => 
+              context.activeChipId === event.chipId ? null : event.chipId,
+          }),
+        },
+        DESELECT_CHIP: {
+          actions: assign({
+            activeChipId: () => null,
+          }),
+        },
       },
     },
     sending: {
@@ -140,6 +185,12 @@ export const promptInputMachine = createMachine({
         SET_MODE: {
           actions: assign({
             mode: ({ event }) => event.mode,
+          }),
+        },
+        // Allow chip deselection during sending, but not selection
+        DESELECT_CHIP: {
+          actions: assign({
+            activeChipId: () => null,
           }),
         },
       },

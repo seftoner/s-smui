@@ -24,16 +24,22 @@ import type { PromptInputProps, SuggestionChip } from './types';
 // Suggestion chips configuration
 const SUGGESTION_CHIPS: SuggestionChip[] = [
     {
+        id: 'improving-writing',
         label: 'Improving writing',
-        icon: <PencilCircleIcon size={20} />
+        icon: <PencilCircleIcon size={20} />,
+        systemPrompt: 'You are a writing assistant focused on improving text quality, grammar, and style.'
     },
     {
+        id: 'auto-correction',
         label: 'Auto-correction',
-        icon: <CheckCircleIcon size={20} />
+        icon: <CheckCircleIcon size={20} />,
+        systemPrompt: 'You are a proofreading assistant that corrects spelling, grammar, and punctuation errors.'
     },
     {
+        id: 'text-summarisation',
         label: 'Text summarisation',
-        icon: <FileTextIcon size={20} />
+        icon: <FileTextIcon size={20} />,
+        systemPrompt: 'You are a summarization assistant that creates concise summaries of provided text.'
     }
 ];
 
@@ -41,6 +47,7 @@ export const PromptInput: React.FC<PromptInputProps> = ({
     value: externalValue,
     onChange,
     onSend,
+    onChipChange,
     disabled = false,
     placeholder = "Ask me anything...",
     mode: externalMode = 'landing',
@@ -78,6 +85,13 @@ export const PromptInput: React.FC<PromptInputProps> = ({
         }
     }, [externalError, externalHelperText, state.context.error, state.context.helperText, send]);
 
+    // Notify parent when active chip changes
+    React.useEffect(() => {
+        if (onChipChange) {
+            onChipChange(state.context.activeChipId);
+        }
+    }, [state.context.activeChipId, onChipChange]);
+
     const handleKeyPress = (event: React.KeyboardEvent) => {
         if (event.key === 'Enter' && !event.shiftKey && !disabled) {
             event.preventDefault();
@@ -103,9 +117,8 @@ export const PromptInput: React.FC<PromptInputProps> = ({
         }, 100);
     };
 
-    const handleSuggestionClick = (suggestion: string) => {
-        send({ type: 'SET_VALUE', value: suggestion });
-        onChange(suggestion);
+    const handleSuggestionClick = (chipId: string) => {
+        send({ type: 'SELECT_CHIP', chipId });
         // Focus the input after clicking a suggestion
         setTimeout(() => {
             if (textFieldRef.current) {
@@ -130,18 +143,6 @@ export const PromptInput: React.FC<PromptInputProps> = ({
     };
 
     const isFocused = state.matches('focused') || state.matches('focusedAndHovered');
-
-    // Expose mode switching functions for external control
-    const switchToLandingMode = () => send({ type: 'SET_MODE', mode: 'landing' });
-    const switchToChatMode = () => send({ type: 'SET_MODE', mode: 'chat' });
-
-    // You could expose these functions via useImperativeHandle if needed:
-    // React.useImperativeHandle(ref, () => ({
-    //     switchToLandingMode,
-    //     switchToChatMode,
-    //     getCurrentMode: () => state.context.mode,
-    //     getCurrentState: () => state.value,
-    // }), [state]);
 
     // Reusable send button component to avoid duplication
     const SendButton: React.FC<{ onClick: () => void; disabled: boolean; color?: 'primary' | 'default' }> = ({ onClick, disabled, color = 'primary' }) => {
@@ -271,34 +272,23 @@ export const PromptInput: React.FC<PromptInputProps> = ({
                                 justifyContent: 'flex-start',
                                 flexWrap: 'wrap'
                             }}>
-                                {SUGGESTION_CHIPS.map((suggestion, index) => (
-                                    <Chip
-                                        key={index}
-                                        label={suggestion.label}
-                                        icon={suggestion.icon}
-                                        variant="outlined"
-                                        size="small"
-                                        clickable
-                                        onClick={() => handleSuggestionClick(suggestion.label)}
-                                        sx={{
-                                            fontSize: '0.8125rem', // 13px
-                                            fontFamily: theme.typography.fontFamily,
-                                            backgroundColor: theme.vars.palette.background.default,
-                                            borderColor: theme.vars.palette.divider,
-                                            color: theme.vars.palette.text.primary,
-                                            '& .MuiChip-icon': {
-                                                color: theme.vars.palette.text.secondary,
-                                                fontSize: '0.875rem',
-                                            },
-                                            '&:hover': {
-                                                backgroundColor: theme.vars.palette.action.hover,
-                                                borderColor: theme.vars.palette.primary.light,
-                                                transform: 'translateY(-1px)',
-                                            },
-                                            transition: 'all 0.2s ease-in-out',
-                                        }}
-                                    />
-                                ))}
+                                {SUGGESTION_CHIPS.map((suggestion) => {
+                                    const isActive = state.context.activeChipId === suggestion.id;
+                                    return (
+                                        <Chip
+                                            key={suggestion.id}
+                                            label={suggestion.label}
+                                            icon={suggestion.icon}
+                                            variant={isActive ? "selected" : "outlined"}
+                                            size="small"
+                                            clickable
+                                            onClick={() => handleSuggestionClick(suggestion.id)}
+                                        // sx={{
+                                        //     transition: 'all 0.2s ease-in-out',
+                                        // }}
+                                        />
+                                    );
+                                })}
                             </Box>
 
                             {/* Send Button */}

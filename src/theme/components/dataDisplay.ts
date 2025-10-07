@@ -12,8 +12,10 @@ export const dataDisplayOverrides = {
         lineHeight: 1.385,
         letterSpacing: '0.0123em',
         height: 32,
+        transition: 'all 0.2s ease-in-out',
         '&:hover': {
           backgroundColor: theme.vars.palette.components?.chip?.hover,
+          transform: 'translateY(-1px)',
         },
         '&.Mui-focusVisible': {
           backgroundColor: theme.vars.palette.components?.chip?.focused,
@@ -33,17 +35,43 @@ export const dataDisplayOverrides = {
       }),
       outlined: ({ theme }: { theme: any }) => ({
         borderColor: theme.vars.palette.components?.chip?.outline?.enabled,
+        transition: 'all 0.2s ease-in-out',
         '&:hover': {
-          borderColor: theme.vars.palette.components?.chip?.outline?.hovered,
+          borderColor: theme.vars.palette.primary.light,
+          transform: 'translateY(-1px)',
         },
         '&.Mui-focusVisible': {
-          borderColor: theme.vars.palette.components?.chip?.outline?.focused,
+          borderColor: theme.vars.palette.primary.main,
         },
         '&.Mui-disabled': {
           borderColor: theme.vars.palette.components?.chip?.outline?.disabled,
         },
       }),
     },
+    variants: [
+      {
+        props: { variant: 'selected' as any },
+        style: ({ theme }: { theme: any }) => ({
+          backgroundColor: theme.vars.palette.primary.main,
+          borderColor: theme.vars.palette.primary.main,
+          color: theme.vars.palette.primary.contrastText,
+          transition: 'all 0.2s ease-in-out',
+          '& .MuiChip-icon': {
+            color: theme.vars.palette.primary.contrastText,
+            transition: 'color 0.2s ease-in-out',
+          },
+          '&:hover': {
+            backgroundColor: theme.vars.palette.primary.dark,
+            borderColor: theme.vars.palette.primary.dark,
+            transform: 'translateY(-1px)',
+          },
+          '&.Mui-focusVisible': {
+            backgroundColor: theme.vars.palette.primary.dark,
+            borderColor: theme.vars.palette.primary.dark,
+          },
+        }),
+      },
+    ],
   },
   MuiBadge: {
     styleOverrides: {

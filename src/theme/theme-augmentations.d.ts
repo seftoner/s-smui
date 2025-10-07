@@ -10,6 +10,13 @@ declare module '@mui/material/IconButton' {
   }
 }
 
+// Augment Chip to support our custom selected variant
+declare module '@mui/material/Chip' {
+  interface ChipPropsVariantOverrides {
+    selected: true;
+  }
+}
+
 /* declare module '@mui/material/styles' {
   interface Palette {
     // Custom component colors that we use in our theme
