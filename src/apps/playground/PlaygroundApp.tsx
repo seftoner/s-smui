@@ -643,14 +643,14 @@ export const PlaygroundApp: React.FC = () => {
                             mimeType="image/png"
                             compact={true}
                             onRemove={() => console.log('Remove image 1')}
-                            imagePreview="https://via.placeholder.com/200x200/3B82F6/FFFFFF?text=IMG"
+                            imagePreview="https://picsum.photos/200"
                         />
                         <FileAttachment
                             fileName="photo.jpg"
                             mimeType="image/jpeg"
                             compact={true}
                             onRemove={() => console.log('Remove image 2')}
-                            imagePreview="https://via.placeholder.com/200x200/10B981/FFFFFF?text=JPG"
+                            imagePreview="https://picsum.photos/200"
                         />
                         <FileAttachment
                             fileName="upload.png"
