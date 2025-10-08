@@ -24,6 +24,7 @@ import { promptInputMachine } from './promptInputMachine';
 import type { PromptInputProps, SuggestionChip, AttachedFile } from './types';
 import { FILE_UPLOAD_CONSTANTS } from './types';
 import { validateFiles, simulateFileUpload, fileListToArray } from './fileUploadUtils';
+import { useTextareaIsMultiline, useTextareaLineCount } from '../../hooks';
 
 // Suggestion chips configuration
 const SUGGESTION_CHIPS: SuggestionChip[] = [
@@ -108,54 +109,14 @@ const InputRow: React.FC<{
     handleSend,
 }) => {
         const isChat = state.context.mode === 'chat';
-
-        // Check if text has multiple lines (for layout switching)
-        const textValue = state.context.value || '';
-        const hasNewlines = textValue.includes('\n');
-
-        // Check if input would overflow and collide with buttons
-        const [shouldWrap, setShouldWrap] = React.useState(false);
-
-        React.useEffect(() => {
-            if (textFieldRef.current && isChat && textValue.trim().length > 0 && !hasNewlines) {
-                const container = textFieldRef.current.closest('[data-testid="input-container"]') || textFieldRef.current.parentElement;
-                const textarea = textFieldRef.current.querySelector('textarea');
-
-                if (textarea && container) {
-                    // Create a temporary element to measure text width
-                    const tempDiv = document.createElement('div');
-                    tempDiv.style.position = 'absolute';
-                    tempDiv.style.visibility = 'hidden';
-                    tempDiv.style.whiteSpace = 'nowrap';
-                    tempDiv.style.font = window.getComputedStyle(textarea).font;
-                    tempDiv.textContent = textValue;
-                    document.body.appendChild(tempDiv);
-
-                    const textWidth = tempDiv.offsetWidth;
-                    document.body.removeChild(tempDiv);
-
-                    // Calculate available width (container - buttons - gaps)
-                    const containerWidth = (container as HTMLElement).offsetWidth;
-                    const buttonWidth = 40; // Approximate button width
-                    const gap = 8; // Gap between elements
-                    // const availableWidth = containerWidth - (buttonWidth * 2) - (gap * 2) - 32; // 32px for padding
-                    const availableWidth = containerWidth - (buttonWidth + gap * 3);
-
-                    setShouldWrap(textWidth > availableWidth);
-                }
-            } else {
-                setShouldWrap(false);
-            }
-        }, [textValue, isChat, hasNewlines]);
-
-        const shouldUseVerticalLayout = isChat && (hasNewlines || shouldWrap);
+        const { ref: textareaRef, isMultiline } = useTextareaIsMultiline<HTMLTextAreaElement>();
+        const shouldUseVerticalLayout = isChat && isMultiline;
 
         return (
             <Box sx={{
                 display: 'flex',
                 flexDirection: shouldUseVerticalLayout ? 'column' : 'row',
                 alignItems: shouldUseVerticalLayout ? 'stretch' : 'center',
-                // gap: 1,
                 mb: isChat ? 0 : 2,
                 ml: isChat ? 0 : 2,
                 transition: 'all 0.2s ease-in-out', // Smooth transition
@@ -168,10 +129,11 @@ const InputRow: React.FC<{
                 {/* Text Field - always present, same component */}
                 <InputBase
                     ref={textFieldRef}
+                    inputRef={textareaRef}
                     fullWidth
                     multiline
                     maxRows={6}
-                    minRows={shouldUseVerticalLayout ? 2 : 1}
+                    // minRows={shouldUseVerticalLayout ? 2 : 1}
                     placeholder={placeholder}
                     value={state.context.value}
                     onChange={handleInputChange}
@@ -179,9 +141,7 @@ const InputRow: React.FC<{
                     onFocus={() => send({ type: 'FOCUS' })}
                     onBlur={() => send({ type: 'BLUR' })}
                     disabled={disabled}
-                    sx={{
-                        transition: 'min-height 0.2s ease-in-out', // Smooth height transition
-                    }}
+
                 />
 
                 {/* Send button for horizontal layout */}
@@ -196,7 +156,7 @@ const InputRow: React.FC<{
                         justifyContent: 'space-between',
                         alignItems: 'center',
                         width: '100%',
-                        transition: 'all 0.2s ease-in-out',
+                        transition: 'all 0.3s ease-in-out',
                     }}>
                         <FileAttachmentButton onClick={handleAddFilesClick} />
                         <SendButton onClick={handleSend} disabled={!canSend()} color="primary" />
