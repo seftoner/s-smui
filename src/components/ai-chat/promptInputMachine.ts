@@ -148,17 +148,6 @@ export const promptInputMachine = createMachine({
               ),
           }),
         },
-        // Drag & drop actions
-        DRAG_ENTER: {
-          actions: assign({
-            isDragOver: () => true,
-          }),
-        },
-        DRAG_LEAVE: {
-          actions: assign({
-            isDragOver: () => false,
-          }),
-        },
       },
     },
     hovered: {

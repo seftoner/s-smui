@@ -7,33 +7,30 @@ import {
     CircularProgress,
     useTheme,
 } from '@mui/material';
+import { X } from '@phosphor-icons/react';
 import {
-    FileText,
-    FilePdf,
-    FileArchive,
-    FileCode,
-    Envelope,
-    X,
-    Image,
-} from '@phosphor-icons/react';
+    ArchiveIcon,
+    DocumentIcon,
+    FileIcon,
+    PDFIcon,
+    SDocumentIcon,
+    SpreadsheetIcon,
+} from '../../assets/icons';
 
-// File type mapping for icons and colors
+// File type mapping for icons
 const FILE_TYPE_CONFIG = {
     document: {
-        icon: FileText,
-        color: '#6B7280', // Gray
+        icon: DocumentIcon,
         label: 'Document',
         mimeTypes: ['text/plain', 'application/rtf', 'text/markdown'],
     },
     pdf: {
-        icon: FilePdf,
-        color: '#3B82F6', // Blue
+        icon: PDFIcon,
         label: 'PDF',
         mimeTypes: ['application/pdf'],
     },
     word: {
-        icon: FileText,
-        color: '#3B82F6', // Blue
+        icon: SDocumentIcon,
         label: 'Document',
         mimeTypes: [
             'application/msword',
@@ -41,8 +38,7 @@ const FILE_TYPE_CONFIG = {
         ],
     },
     archive: {
-        icon: FileArchive,
-        color: '#8B5CF6', // Purple
+        icon: ArchiveIcon,
         label: 'Archive',
         mimeTypes: [
             'application/zip',
@@ -52,8 +48,7 @@ const FILE_TYPE_CONFIG = {
         ],
     },
     code: {
-        icon: FileCode,
-        color: '#EF4444', // Red
+        icon: FileIcon,
         label: 'Code',
         mimeTypes: [
             'application/json',
@@ -65,8 +60,7 @@ const FILE_TYPE_CONFIG = {
         ],
     },
     spreadsheet: {
-        icon: FileText,
-        color: '#10B981', // Green
+        icon: SpreadsheetIcon,
         label: 'Spreadsheet',
         mimeTypes: [
             'text/csv',
@@ -75,8 +69,7 @@ const FILE_TYPE_CONFIG = {
         ],
     },
     email: {
-        icon: Envelope,
-        color: '#3B82F6', // Blue
+        icon: FileIcon,
         label: 'Email',
         mimeTypes: ['message/rfc822', 'application/eml'],
     },
@@ -187,7 +180,6 @@ export const FileAttachment: React.FC<FileAttachmentProps> = ({
     // Get file type configuration
     const detectedExtension = fileExtension || getFileExtension(fileName);
     const fileConfig = getFileTypeConfig(mimeType, detectedExtension);
-    const IconComponent = fileConfig.icon;
 
     // For image files in compact mode, show only the image preview
     if (isImage && compact) {
@@ -231,7 +223,15 @@ export const FileAttachment: React.FC<FileAttachmentProps> = ({
                             borderRadius: 2,
                         }}
                     >
-                        <Image size={24} color={theme.vars.palette.text.secondary} />
+                        <img
+                            src={FileIcon}
+                            alt="File"
+                            style={{
+                                width: 24,
+                                height: 24,
+                                opacity: 0.6
+                            }}
+                        />
                     </Box>
                 )}
 
@@ -321,7 +321,6 @@ export const FileAttachment: React.FC<FileAttachmentProps> = ({
                     alignItems: 'center',
                     justifyContent: 'center',
                     borderRadius: 2,
-                    backgroundColor: isImage ? 'transparent' : theme.vars.palette.action.selected,
                     flexShrink: 0,
                     overflow: 'hidden',
                 }}
@@ -345,10 +344,9 @@ export const FileAttachment: React.FC<FileAttachmentProps> = ({
                         }}
                     />
                 ) : (
-                    <IconComponent
-                        size={24}
-                        color={fileConfig.color}
-                        weight="duotone"
+                    <img
+                        src={fileConfig.icon}
+                        alt={fileConfig.label}
                     />
                 )}
             </Box>

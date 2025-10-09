@@ -346,69 +346,7 @@ export const PromptInput: React.FC<PromptInputProps> = ({
         send({ type: 'REMOVE_FILE', fileId });
     };
 
-    // Drag & Drop handlers
-    const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
-        event.preventDefault();
-        event.stopPropagation();
-    };
-
-    const handleDragEnter = (event: React.DragEvent<HTMLDivElement>) => {
-        event.preventDefault();
-        event.stopPropagation();
-        send({ type: 'DRAG_ENTER' });
-    };
-
-    const handleDragLeave = (event: React.DragEvent<HTMLDivElement>) => {
-        event.preventDefault();
-        event.stopPropagation();
-        // Only trigger drag leave if we're leaving the main container
-        if (!event.currentTarget.contains(event.relatedTarget as Node)) {
-            send({ type: 'DRAG_LEAVE' });
-        }
-    };
-
-    const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
-        event.preventDefault();
-        event.stopPropagation();
-        send({ type: 'DRAG_LEAVE' });
-
-        const files = event.dataTransfer.files;
-        if (files.length > 0) {
-            const fileArray = fileListToArray(files);
-
-            // Validate files before adding
-            const { validFiles, errors } = validateFiles(fileArray, state.context.attachedFiles.length);
-
-            if (validFiles.length > 0) {
-                // Convert to AttachedFile objects
-                const attachedFiles = validFiles.map(createAttachedFile);
-
-                send({ type: 'ADD_FILES', files: attachedFiles });
-
-                // Start upload simulation for each file
-                attachedFiles.forEach(attachedFile => {
-                    simulateFileUpload(
-                        attachedFile.id,
-                        (fileId, progress) => {
-                            send({ type: 'UPDATE_FILE_PROGRESS', fileId, progress });
-                        },
-                        (fileId, uploadedUrl) => {
-                            send({ type: 'FILE_UPLOAD_SUCCESS', fileId, uploadedUrl });
-                        },
-                        (fileId, error) => {
-                            send({ type: 'FILE_UPLOAD_ERROR', fileId, error });
-                        }
-                    );
-                });
-            }
-
-            // Show errors if any
-            if (errors.length > 0) {
-                console.error('File validation errors:', errors);
-                errors.forEach(error => showError(error));
-            }
-        }
-    };
+    // Drag & drop removed — file selection still available via file input
 
     // Helper function to check if send is allowed
     const canSend = React.useCallback(() => {
@@ -492,10 +430,7 @@ export const PromptInput: React.FC<PromptInputProps> = ({
                 elevation={0}
                 onMouseEnter={() => send({ type: 'HOVER' })}
                 onMouseLeave={() => send({ type: 'UNHOVER' })}
-                onDragOver={handleDragOver}
-                onDragEnter={handleDragEnter}
-                onDragLeave={handleDragLeave}
-                onDrop={handleDrop}
+                /* drag & drop handlers removed - keep file input for attachments */
                 sx={{
                     backgroundColor: getBackgroundColor(),
                     borderRadius: 8, // 24px based on cornerRadius-4
@@ -507,12 +442,7 @@ export const PromptInput: React.FC<PromptInputProps> = ({
                     '&:hover': {
                         borderColor: !isFocused ? theme.vars.palette.primary.light : theme.vars.palette.primary.main,
                     },
-                    // Drag over styling
-                    ...(state.context.isDragOver && {
-                        borderColor: theme.vars.palette.primary.main,
-                        borderWidth: 2,
-                        backgroundColor: theme.vars.palette.action.hover,
-                    }),
+                    /* drag styling removed */
                 }}
             >
                 <Box sx={{ p: 2 }}>
