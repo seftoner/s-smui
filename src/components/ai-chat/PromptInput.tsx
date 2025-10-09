@@ -24,7 +24,7 @@ import { promptInputMachine } from './promptInputMachine';
 import type { PromptInputProps, SuggestionChip, AttachedFile } from './types';
 import { FILE_UPLOAD_CONSTANTS } from './types';
 import { validateFiles, simulateFileUpload, fileListToArray } from './fileUploadUtils';
-import { useTextareaIsMultiline, useTextareaLineCount } from '../../hooks';
+import { useTextareaIsMultiline } from '../../hooks';
 
 // Suggestion chips configuration
 const SUGGESTION_CHIPS: SuggestionChip[] = [
@@ -49,7 +49,7 @@ const SUGGESTION_CHIPS: SuggestionChip[] = [
 ];
 
 // Reusable send button component to avoid duplication
-const SendButton: React.FC<{ onClick: () => void; disabled: boolean; color?: 'primary' | 'default' }> = ({ onClick, disabled, color = 'primary' }) => {
+const SendButton = React.memo<{ onClick: () => void; disabled: boolean; color?: 'primary' | 'default' }>(({ onClick, disabled, color = 'primary' }) => {
     return (
         <IconButton
             onClick={onClick}
@@ -66,13 +66,14 @@ const SendButton: React.FC<{ onClick: () => void; disabled: boolean; color?: 'pr
             <ArrowUpIcon />
         </IconButton>
     );
-};
+});
+SendButton.displayName = 'SendButton';
 
 // Reusable file attachment button
-const FileAttachmentButton: React.FC<{
+const FileAttachmentButton = React.memo<{
     size?: 'small' | 'medium';
     onClick: () => void;
-}> = ({ size = 'small', onClick }) => {
+}>(({ size = 'small', onClick }) => {
     return (
         <IconButton
             onClick={onClick}
@@ -81,10 +82,11 @@ const FileAttachmentButton: React.FC<{
             <PaperclipIcon />
         </IconButton>
     );
-};
+});
+FileAttachmentButton.displayName = 'FileAttachmentButton';
 
 // Main input row component (used by both modes)
-const InputRow: React.FC<{
+const InputRow = React.memo<{
     state: any;
     send: any;
     placeholder: string;
@@ -96,7 +98,7 @@ const InputRow: React.FC<{
     canSend: () => boolean;
     handleSend: () => void;
     theme: any;
-}> = ({
+}>(({
     state,
     send,
     placeholder,
@@ -108,117 +110,119 @@ const InputRow: React.FC<{
     canSend,
     handleSend,
 }) => {
-        const isChat = state.context.mode === 'chat';
-        const { ref: textareaRef, isMultiline } = useTextareaIsMultiline<HTMLTextAreaElement>();
-        const shouldUseVerticalLayout = isChat && isMultiline;
+    const isChat = state.context.mode === 'chat';
+    const { ref: textareaRef, isMultiline } = useTextareaIsMultiline<HTMLTextAreaElement>();
+    const shouldUseVerticalLayout = isChat && isMultiline;
 
-        return (
-            <Box sx={{
-                display: 'flex',
-                flexDirection: shouldUseVerticalLayout ? 'column' : 'row',
-                alignItems: shouldUseVerticalLayout ? 'stretch' : 'center',
-                mb: isChat ? 0 : 2,
-                ml: isChat ? 0 : 2,
-                transition: 'all 0.2s ease-in-out', // Smooth transition
-            }}>
-                {/* File attachment button for horizontal layout */}
-                {isChat && !shouldUseVerticalLayout && (
+    return (
+        <Box sx={{
+            display: 'flex',
+            flexDirection: shouldUseVerticalLayout ? 'column' : 'row',
+            alignItems: shouldUseVerticalLayout ? 'stretch' : 'center',
+            mb: isChat ? 0 : 2,
+            ml: isChat ? 0 : 2,
+            transition: 'all 0.2s ease-in-out', // Smooth transition
+        }}>
+            {/* File attachment button for horizontal layout */}
+            {isChat && !shouldUseVerticalLayout && (
+                <FileAttachmentButton onClick={handleAddFilesClick} />
+            )}
+
+            {/* Text Field - always present, same component */}
+            <InputBase
+                ref={textFieldRef}
+                inputRef={textareaRef}
+                fullWidth
+                multiline
+                maxRows={6}
+                // minRows={shouldUseVerticalLayout ? 2 : 1}
+                placeholder={placeholder}
+                value={state.context.value}
+                onChange={handleInputChange}
+                onKeyDown={handleKeyPress}
+                onFocus={() => send({ type: 'FOCUS' })}
+                onBlur={() => send({ type: 'BLUR' })}
+                disabled={disabled}
+
+            />
+
+            {/* Send button for horizontal layout */}
+            {isChat && !shouldUseVerticalLayout && (
+                <SendButton onClick={handleSend} disabled={!canSend()} color="primary" />
+            )}
+
+            {/* Buttons Container for vertical layout only */}
+            {isChat && shouldUseVerticalLayout && (
+                <Box sx={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    width: '100%',
+                    transition: 'all 0.3s ease-in-out',
+                }}>
                     <FileAttachmentButton onClick={handleAddFilesClick} />
-                )}
-
-                {/* Text Field - always present, same component */}
-                <InputBase
-                    ref={textFieldRef}
-                    inputRef={textareaRef}
-                    fullWidth
-                    multiline
-                    maxRows={6}
-                    // minRows={shouldUseVerticalLayout ? 2 : 1}
-                    placeholder={placeholder}
-                    value={state.context.value}
-                    onChange={handleInputChange}
-                    onKeyDown={handleKeyPress}
-                    onFocus={() => send({ type: 'FOCUS' })}
-                    onBlur={() => send({ type: 'BLUR' })}
-                    disabled={disabled}
-
-                />
-
-                {/* Send button for horizontal layout */}
-                {isChat && !shouldUseVerticalLayout && (
                     <SendButton onClick={handleSend} disabled={!canSend()} color="primary" />
-                )}
-
-                {/* Buttons Container for vertical layout only */}
-                {isChat && shouldUseVerticalLayout && (
-                    <Box sx={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        width: '100%',
-                        transition: 'all 0.3s ease-in-out',
-                    }}>
-                        <FileAttachmentButton onClick={handleAddFilesClick} />
-                        <SendButton onClick={handleSend} disabled={!canSend()} color="primary" />
-                    </Box>
-                )}
-            </Box>
-        );
-    };
+                </Box>
+            )}
+        </Box>
+    );
+});
+InputRow.displayName = 'InputRow';
 
 // Footer component for landing mode
-const LandingFooter: React.FC<{
+const LandingFooter = React.memo<{
     state: any;
     handleAddFilesClick: () => void;
     handleSuggestionClick: (chipId: string) => void;
     canSend: () => boolean;
     handleSend: () => void;
-}> = ({
+}>(({
     state,
     handleAddFilesClick,
     handleSuggestionClick,
     canSend,
     handleSend
 }) => {
-        return (
+    return (
+        <Box sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 2
+        }}>
+            {/* Left side: File button + Suggestion Chips */}
             <Box sx={{
                 display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                gap: 2
+                gap: 2,
+                flex: 1,
+                justifyContent: 'flex-start',
+                flexWrap: 'wrap',
+                alignItems: 'center'
             }}>
-                {/* Left side: File button + Suggestion Chips */}
-                <Box sx={{
-                    display: 'flex',
-                    gap: 2,
-                    flex: 1,
-                    justifyContent: 'flex-start',
-                    flexWrap: 'wrap',
-                    alignItems: 'center'
-                }}>
-                    <FileAttachmentButton onClick={handleAddFilesClick} />
+                <FileAttachmentButton onClick={handleAddFilesClick} />
 
-                    {/* Suggestion chips */}
-                    {SUGGESTION_CHIPS.map((suggestion) => {
-                        const isActive = state.context.activeChipId === suggestion.id;
-                        return (
-                            <Chip
-                                key={suggestion.id}
-                                label={suggestion.label}
-                                icon={suggestion.icon}
-                                variant={isActive ? "selected" : "outlined"}
-                                size="small"
-                                onClick={() => handleSuggestionClick(suggestion.id)}
-                            />
-                        );
-                    })}
-                </Box>
-
-                {/* Right side: Send Button */}
-                <SendButton onClick={handleSend} disabled={!canSend()} color="primary" />
+                {/* Suggestion chips */}
+                {SUGGESTION_CHIPS.map((suggestion) => {
+                    const isActive = state.context.activeChipId === suggestion.id;
+                    return (
+                        <Chip
+                            key={suggestion.id}
+                            label={suggestion.label}
+                            icon={suggestion.icon}
+                            variant={isActive ? "selected" : "outlined"}
+                            size="small"
+                            onClick={() => handleSuggestionClick(suggestion.id)}
+                        />
+                    );
+                })}
             </Box>
-        );
-    };
+
+            {/* Right side: Send Button */}
+            <SendButton onClick={handleSend} disabled={!canSend()} color="primary" />
+        </Box>
+    );
+});
+LandingFooter.displayName = 'LandingFooter';
 
 export const PromptInput: React.FC<PromptInputProps> = ({
     value: externalValue,
@@ -282,18 +286,11 @@ export const PromptInput: React.FC<PromptInputProps> = ({
         }
     }, [state.context.activeChipId, onChipChange]);
 
-    const handleKeyPress = (event: React.KeyboardEvent) => {
-        if (event.key === 'Enter' && !event.shiftKey) {
-            event.preventDefault();
-            handleSend(); // handleSend now includes all validation logic
-        }
-    };
-
-    const handleInputChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const handleInputChange = React.useCallback((event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const newValue = event.target.value;
         send({ type: 'SET_VALUE', value: newValue });
         onChange(newValue);
-    };
+    }, [send, onChange]);
 
     // Helper function to create AttachedFile from File
     const createAttachedFile = (file: File): AttachedFile => ({
@@ -414,15 +411,15 @@ export const PromptInput: React.FC<PromptInputProps> = ({
     };
 
     // Helper function to check if send is allowed
-    const canSend = () => {
+    const canSend = React.useCallback(() => {
         const hasText = state.context.value.trim().length > 0;
         const hasUploadingFiles = state.context.attachedFiles.some(file => file.uploadStatus === 'uploading');
         const hasFailedFiles = state.context.attachedFiles.some(file => file.uploadStatus === 'error');
 
         return hasText && !hasUploadingFiles && !hasFailedFiles && !disabled;
-    };
+    }, [state.context.value, state.context.attachedFiles, disabled]);
 
-    const handleSend = () => {
+    const handleSend = React.useCallback(() => {
         if (!canSend()) {
             // Show appropriate error message
             if (!state.context.value.trim()) {
@@ -442,9 +439,9 @@ export const PromptInput: React.FC<PromptInputProps> = ({
         setTimeout(() => {
             send({ type: 'SEND_SUCCESS' });
         }, 100);
-    };
+    }, [canSend, state.context.value, state.context.attachedFiles, send, onSend, showError]);
 
-    const handleSuggestionClick = (chipId: string) => {
+    const handleSuggestionClick = React.useCallback((chipId: string) => {
         send({ type: 'SELECT_CHIP', chipId });
         // Focus the input after clicking a suggestion
         setTimeout(() => {
@@ -455,7 +452,14 @@ export const PromptInput: React.FC<PromptInputProps> = ({
                 }
             }
         }, 0);
-    };
+    }, [send]);
+
+    const handleKeyPress = React.useCallback((event: React.KeyboardEvent) => {
+        if (event.key === 'Enter' && !event.shiftKey) {
+            event.preventDefault();
+            handleSend();
+        }
+    }, [handleSend]);
 
     const getBorderColor = () => {
         if (state.context.error) return theme.vars.palette.error.main;
