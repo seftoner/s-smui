@@ -121,7 +121,6 @@ const InputRow = React.memo<{
             alignItems: shouldUseVerticalLayout ? 'stretch' : 'center',
             mb: isChat ? 0 : 2,
             ml: isChat ? 0 : 2,
-            transition: 'all 0.2s ease-in-out', // Smooth transition
         }}>
             {/* File attachment button for horizontal layout */}
             {isChat && !shouldUseVerticalLayout && (
@@ -454,7 +453,6 @@ export const PromptInput: React.FC<PromptInputProps> = ({
                     backgroundColor: getBackgroundColor(),
                     borderRadius: 8, // 24px based on cornerRadius-4
                     border: `1px solid ${getBorderColor()}`,
-                    transition: 'all 0.3s ease-in-out',
                     overflow: 'hidden',
                     boxShadow: theme.customShadows.promptInput,
                     position: 'relative',

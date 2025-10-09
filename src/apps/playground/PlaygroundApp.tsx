@@ -239,6 +239,15 @@ export const PlaygroundApp: React.FC = () => {
                                     error
                                     helperText="This field has an error"
                                 />
+                                <TextField
+                                    label="Multiline Text Area"
+                                    variant="outlined"
+                                    multiline
+                                    rows={4}
+                                    placeholder="Enter multiple lines of text here..."
+                                    helperText="This is a textarea with 4 rows"
+                                />
+
                                 <FormControl>
                                     <InputLabel>Select Option</InputLabel>
                                     <Select
