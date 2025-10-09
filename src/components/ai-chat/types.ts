@@ -17,6 +17,7 @@ export interface AttachedFile {
   uploadProgress: number; // 0-100
   error?: string; // Error message if upload failed
   uploadedUrl?: string; // URL after successful upload
+  imagePreview?: string; // Data URL for image preview
 }
 
 // Machine context interface
@@ -79,6 +80,13 @@ export const FILE_UPLOAD_CONSTANTS = {
   MAX_FILES: 10,
   MAX_FILE_SIZE: 20 * 1024 * 1024, // 20MB in bytes
   ALLOWED_TYPES: [
+    // Images
+    'image/jpeg',
+    'image/jpg',
+    'image/png',
+    'image/gif',
+    'image/webp',
+    'image/svg+xml',
     // Documents
     'application/pdf',
     'application/msword',

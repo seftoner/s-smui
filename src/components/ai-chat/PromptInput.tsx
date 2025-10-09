@@ -293,26 +293,45 @@ export const PromptInput: React.FC<PromptInputProps> = ({
     }, [send, onChange]);
 
     // Helper function to create AttachedFile from File
-    const createAttachedFile = (file: File): AttachedFile => ({
-        id: `file_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        file,
-        fileName: file.name,
-        fileSize: file.size,
-        mimeType: file.type,
-        uploadStatus: 'uploading',
-        uploadProgress: 0,
-    });
+    const createAttachedFile = async (file: File): Promise<AttachedFile> => {
+        const attachedFile: AttachedFile = {
+            id: `file_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+            file,
+            fileName: file.name,
+            fileSize: file.size,
+            mimeType: file.type,
+            uploadStatus: 'uploading',
+            uploadProgress: 0,
+        };
+
+        // Generate image preview for image files
+        if (file.type.startsWith('image/')) {
+            try {
+                const imagePreview = await new Promise<string>((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => resolve(e.target?.result as string);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(file);
+                });
+                attachedFile.imagePreview = imagePreview;
+            } catch (error) {
+                console.warn('Failed to generate image preview:', error);
+            }
+        }
+
+        return attachedFile;
+    };
 
     // File handling functions
-    const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const files = event.target.files;
         if (files && files.length > 0) {
             const fileArray = fileListToArray(files);
             const { validFiles, errors } = validateFiles(fileArray, state.context.attachedFiles.length);
 
             if (validFiles.length > 0) {
-                // Convert to AttachedFile objects
-                const attachedFiles = validFiles.map(createAttachedFile);
+                // Convert to AttachedFile objects with image previews
+                const attachedFiles = await Promise.all(validFiles.map(createAttachedFile));
 
                 send({ type: 'ADD_FILES', files: attachedFiles });
 
@@ -351,8 +370,8 @@ export const PromptInput: React.FC<PromptInputProps> = ({
     // Helper function to check if send is allowed
     const canSend = React.useCallback(() => {
         const hasText = state.context.value.trim().length > 0;
-        const hasUploadingFiles = state.context.attachedFiles.some(file => file.uploadStatus === 'uploading');
-        const hasFailedFiles = state.context.attachedFiles.some(file => file.uploadStatus === 'error');
+        const hasUploadingFiles = state.context.attachedFiles.some((file: AttachedFile) => file.uploadStatus === 'uploading');
+        const hasFailedFiles = state.context.attachedFiles.some((file: AttachedFile) => file.uploadStatus === 'error');
 
         return hasText && !hasUploadingFiles && !hasFailedFiles && !disabled;
     }, [state.context.value, state.context.attachedFiles, disabled]);
@@ -362,9 +381,9 @@ export const PromptInput: React.FC<PromptInputProps> = ({
             // Show appropriate error message
             if (!state.context.value.trim()) {
                 showError('Please enter a message before sending.', 'warning');
-            } else if (state.context.attachedFiles.some(file => file.uploadStatus === 'uploading')) {
+            } else if (state.context.attachedFiles.some((file: AttachedFile) => file.uploadStatus === 'uploading')) {
                 showError('Please wait for files to finish uploading.', 'warning');
-            } else if (state.context.attachedFiles.some(file => file.uploadStatus === 'error')) {
+            } else if (state.context.attachedFiles.some((file: AttachedFile) => file.uploadStatus === 'error')) {
                 showError('Please remove or re-upload failed files.', 'error');
             }
             return;
@@ -456,13 +475,15 @@ export const PromptInput: React.FC<PromptInputProps> = ({
                                 gap: 3,
                                 overflowX: 'auto',
                             }}>
-                                {state.context.attachedFiles.map((file) => (
+                                {state.context.attachedFiles.map((file: AttachedFile) => (
                                     <Box key={file.id} sx={{ flexShrink: 0 }}>
                                         <FileAttachment
                                             fileName={file.fileName}
                                             mimeType={file.mimeType}
                                             uploading={file.uploadStatus === 'uploading'}
                                             uploadProgress={file.uploadProgress}
+                                            imagePreview={file.imagePreview}
+                                            compact={file.mimeType?.startsWith('image/') && !!file.imagePreview}
                                             onRemove={() => handleRemoveFile(file.id)}
                                         />
                                     </Box>

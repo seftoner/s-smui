@@ -191,49 +191,59 @@ export const FileAttachment: React.FC<FileAttachmentProps> = ({
                     width: 56,
                     height: 56,
                     borderRadius: 2,
-                    overflow: 'hidden',
+                    overflow: 'visible', // Changed from 'hidden' to allow button to show
                     cursor: 'pointer',
                     '&:hover .remove-button': {
                         opacity: 1,
                     },
                 }}
             >
-                {/* Image Preview */}
-                {imagePreview ? (
-                    <Box
-                        component="img"
-                        src={imagePreview}
-                        alt={fileName}
-                        sx={{
-                            width: '100%',
-                            height: '100%',
-                            objectFit: 'cover',
-                            borderRadius: 2,
-                        }}
-                    />
-                ) : (
-                    <Box
-                        sx={{
-                            width: '100%',
-                            height: '100%',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            backgroundColor: theme.vars.palette.action.selected,
-                            borderRadius: 2,
-                        }}
-                    >
-                        <img
-                            src={FileIcon}
-                            alt="File"
-                            style={{
-                                width: 24,
-                                height: 24,
-                                opacity: 0.6
+                {/* Image Content Container - clips the image */}
+                <Box
+                    sx={{
+                        width: '100%',
+                        height: '100%',
+                        borderRadius: 2,
+                        overflow: 'hidden',
+                    }}
+                >
+                    {/* Image Preview */}
+                    {imagePreview ? (
+                        <Box
+                            component="img"
+                            src={imagePreview}
+                            alt={fileName}
+                            sx={{
+                                width: '100%',
+                                height: '100%',
+                                objectFit: 'cover',
+                                borderRadius: 2,
                             }}
                         />
-                    </Box>
-                )}
+                    ) : (
+                        <Box
+                            sx={{
+                                width: '100%',
+                                height: '100%',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                backgroundColor: theme.vars.palette.action.selected,
+                                borderRadius: 2,
+                            }}
+                        >
+                            <img
+                                src={FileIcon}
+                                alt="File"
+                                style={{
+                                    width: 24,
+                                    height: 24,
+                                    opacity: 0.6
+                                }}
+                            />
+                        </Box>
+                    )}
+                </Box>
 
                 {/* Upload Progress Overlay */}
                 {uploading && (
@@ -275,8 +285,10 @@ export const FileAttachment: React.FC<FileAttachmentProps> = ({
                             border: `1px solid ${theme.vars.palette.divider}`,
                             opacity: 0,
                             transition: 'opacity 0.2s ease',
+                            zIndex: 100,
                             '&:hover': {
                                 backgroundColor: theme.vars.palette.action.hover,
+                                opacity: 1,
                             },
                         }}
                     >
@@ -299,7 +311,6 @@ export const FileAttachment: React.FC<FileAttachmentProps> = ({
                 borderRadius: 4,
                 backgroundColor: theme.vars.palette.background.paper,
                 border: `1px solid ${theme.vars.palette.divider}`,
-                // minHeight: 56,
                 width: 220,
                 position: 'relative',
                 cursor: 'pointer',
@@ -395,8 +406,10 @@ export const FileAttachment: React.FC<FileAttachmentProps> = ({
                         border: `1px solid ${theme.vars.palette.divider}`,
                         opacity: 0,
                         transition: 'opacity 0.2s ease',
+                        zIndex: 10,
                         '&:hover': {
                             backgroundColor: theme.vars.palette.action.hover,
+                            opacity: 1,
                         },
                     }}
                 >

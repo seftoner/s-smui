@@ -1,37 +1,9 @@
-import { createMachine, assign } from 'xstate';
-import type { PromptInputContext, PromptInputEvent, AttachedFile } from './types';
+import { assign, setup } from 'xstate';
+import type { PromptInputContext, AttachedFile } from './types';
 import { FILE_UPLOAD_CONSTANTS } from './types';
-import { validateFile } from './fileUploadUtils';
 
 /**
- * Generate unique ID for files
- */
-const generateFileId = (): string => {
-  return `file_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-};
-
-/**
- * Create attached file object from File
- */
-const createAttachedFile = (file: File): AttachedFile => ({
-  id: generateFileId(),
-  file,
-  fileName: file.name,
-  fileSize: file.size,
-  mimeType: file.type,
-  uploadStatus: 'uploading',
-  uploadProgress: 0,
-});
-
-/**
- * Type guard to check if an event is a value change event
- */
-export const isValueChangeEvent = (event: PromptInputEvent): event is Extract<PromptInputEvent, { type: 'SET_VALUE' }> => {
-  return event.type === 'SET_VALUE';
-};
-
-/**
- * XState machine for managing PromptInput component state
+ * XState machine for managing PromptInput component state using modern v5 setup pattern
  * 
  * States:
  * - idle: Default state, no user interaction
@@ -48,10 +20,80 @@ export const isValueChangeEvent = (event: PromptInputEvent): event is Extract<Pr
  * 
  * Events: See PromptInputEvent type for all supported events
  */
-export const promptInputMachine = createMachine({
+export const promptInputMachine = setup({
+  // Define all shared actions here - available in all states
+  actions: {
+    setValue: assign({
+      value: ({ event }) => event.value,
+    }),
+    setError: assign({
+      error: ({ event }) => event.error,
+      helperText: ({ event }) => event.helperText || '',
+    }),
+    setMode: assign({
+      mode: ({ event }) => event.mode,
+    }),
+    selectChip: assign({
+      activeChipId: ({ event, context }) => 
+        context.activeChipId === event.chipId ? null : event.chipId,
+    }),
+    deselectChip: assign({
+      activeChipId: () => null,
+    }),
+    addFiles: assign({
+      attachedFiles: ({ event, context }) => {
+        // Check if adding files would exceed the limit
+        if (context.attachedFiles.length + event.files.length > FILE_UPLOAD_CONSTANTS.MAX_FILES) {
+          return context.attachedFiles; // Don't add files if it would exceed limit
+        }
+        
+        // Create attached files (validation already done in component)
+        const newFiles = event.files.map((file: AttachedFile) => ({
+          ...file,
+          uploadStatus: 'uploading' as const,
+          uploadProgress: 0,
+        }));
+        
+        return [...context.attachedFiles, ...newFiles];
+      },
+    }),
+    removeFile: assign({
+      attachedFiles: ({ event, context }) => 
+        context.attachedFiles.filter((file: AttachedFile) => file.id !== event.fileId),
+    }),
+    updateFileProgress: assign({
+      attachedFiles: ({ event, context }) => 
+        context.attachedFiles.map((file: AttachedFile) => 
+          file.id === event.fileId 
+            ? { ...file, uploadProgress: event.progress }
+            : file
+        ),
+    }),
+    fileUploadSuccess: assign({
+      attachedFiles: ({ event, context }) => 
+        context.attachedFiles.map((file: AttachedFile) => 
+          file.id === event.fileId 
+            ? { ...file, uploadStatus: 'completed', uploadProgress: 100, uploadedUrl: event.uploadedUrl }
+            : file
+        ),
+    }),
+    fileUploadError: assign({
+      attachedFiles: ({ event, context }) => 
+        context.attachedFiles.map((file: AttachedFile) => 
+          file.id === event.fileId 
+            ? { ...file, uploadStatus: 'error', error: event.error }
+            : file
+        ),
+    }),
+    setSendError: assign({
+      error: () => true,
+      helperText: ({ event }) => event.message || 'Failed to send message',
+    }),
+  },
+}).createMachine({
   id: 'promptInput',
   initial: 'idle',
-  context: {
+  context: (): PromptInputContext => ({
     value: '',
     error: false,
     helperText: '',
@@ -59,128 +101,33 @@ export const promptInputMachine = createMachine({
     activeChipId: null,
     attachedFiles: [],
     isDragOver: false,
-  } as PromptInputContext,
+  }),
+  
+  // Define shared actions that are available in all states
+  on: {
+    SET_VALUE: { actions: 'setValue' },
+    SET_ERROR: { actions: 'setError' },
+    SET_MODE: { actions: 'setMode' },
+    SELECT_CHIP: { actions: 'selectChip' },
+    DESELECT_CHIP: { actions: 'deselectChip' },
+    ADD_FILES: { actions: 'addFiles' },
+    REMOVE_FILE: { actions: 'removeFile' },
+    UPDATE_FILE_PROGRESS: { actions: 'updateFileProgress' },
+    FILE_UPLOAD_SUCCESS: { actions: 'fileUploadSuccess' },
+    FILE_UPLOAD_ERROR: { actions: 'fileUploadError' },
+  },
+  
   states: {
     idle: {
       on: {
         FOCUS: 'focused',
         HOVER: 'hovered',
-        SET_VALUE: {
-          actions: assign({
-            value: ({ event }) => event.value,
-          }),
-        },
-        SET_ERROR: {
-          actions: assign({
-            error: ({ event }) => event.error,
-            helperText: ({ event }) => event.helperText || '',
-          }),
-        },
-        SET_MODE: {
-          actions: assign({
-            mode: ({ event }) => event.mode,
-          }),
-        },
-        SELECT_CHIP: {
-          actions: assign({
-            activeChipId: ({ event, context }) => 
-              context.activeChipId === event.chipId ? null : event.chipId, // Toggle: deselect if already selected
-          }),
-        },
-        DESELECT_CHIP: {
-          actions: assign({
-            activeChipId: () => null,
-          }),
-        },
-        // File attachment actions
-        ADD_FILES: {
-          actions: assign({
-            attachedFiles: ({ event, context }) => {
-              // Check if adding files would exceed the limit
-              if (context.attachedFiles.length + event.files.length > FILE_UPLOAD_CONSTANTS.MAX_FILES) {
-                return context.attachedFiles; // Don't add files if it would exceed limit
-              }
-              
-              // Create attached files (validation already done in component)
-              const newFiles = event.files.map((file: AttachedFile) => ({
-                ...file,
-                uploadStatus: 'uploading' as const,
-                uploadProgress: 0,
-              }));
-              
-              return [...context.attachedFiles, ...newFiles];
-            },
-          }),
-        },
-        REMOVE_FILE: {
-          actions: assign({
-            attachedFiles: ({ event, context }) => 
-              context.attachedFiles.filter(file => file.id !== event.fileId),
-          }),
-        },
-        UPDATE_FILE_PROGRESS: {
-          actions: assign({
-            attachedFiles: ({ event, context }) => 
-              context.attachedFiles.map(file => 
-                file.id === event.fileId 
-                  ? { ...file, uploadProgress: event.progress }
-                  : file
-              ),
-          }),
-        },
-        FILE_UPLOAD_SUCCESS: {
-          actions: assign({
-            attachedFiles: ({ event, context }) => 
-              context.attachedFiles.map(file => 
-                file.id === event.fileId 
-                  ? { ...file, uploadStatus: 'completed', uploadProgress: 100, uploadedUrl: event.uploadedUrl }
-                  : file
-              ),
-          }),
-        },
-        FILE_UPLOAD_ERROR: {
-          actions: assign({
-            attachedFiles: ({ event, context }) => 
-              context.attachedFiles.map(file => 
-                file.id === event.fileId 
-                  ? { ...file, uploadStatus: 'error', error: event.error }
-                  : file
-              ),
-          }),
-        },
       },
     },
     hovered: {
       on: {
         FOCUS: 'focused',
         UNHOVER: 'idle',
-        SET_VALUE: {
-          actions: assign({
-            value: ({ event }) => event.value,
-          }),
-        },
-        SET_ERROR: {
-          actions: assign({
-            error: ({ event }) => event.error,
-            helperText: ({ event }) => event.helperText || '',
-          }),
-        },
-        SET_MODE: {
-          actions: assign({
-            mode: ({ event }) => event.mode,
-          }),
-        },
-        SELECT_CHIP: {
-          actions: assign({
-            activeChipId: ({ event, context }) => 
-              context.activeChipId === event.chipId ? null : event.chipId,
-          }),
-        },
-        DESELECT_CHIP: {
-          actions: assign({
-            activeChipId: () => null,
-          }),
-        },
       },
     },
     focused: {
@@ -189,33 +136,6 @@ export const promptInputMachine = createMachine({
         HOVER: 'focusedAndHovered',
         UNHOVER: 'focused',
         SEND: 'sending',
-        SET_VALUE: {
-          actions: assign({
-            value: ({ event }) => event.value,
-          }),
-        },
-        SET_ERROR: {
-          actions: assign({
-            error: ({ event }) => event.error,
-            helperText: ({ event }) => event.helperText || '',
-          }),
-        },
-        SET_MODE: {
-          actions: assign({
-            mode: ({ event }) => event.mode,
-          }),
-        },
-        SELECT_CHIP: {
-          actions: assign({
-            activeChipId: ({ event, context }) => 
-              context.activeChipId === event.chipId ? null : event.chipId,
-          }),
-        },
-        DESELECT_CHIP: {
-          actions: assign({
-            activeChipId: () => null,
-          }),
-        },
       },
     },
     focusedAndHovered: {
@@ -223,33 +143,6 @@ export const promptInputMachine = createMachine({
         BLUR: 'hovered',
         UNHOVER: 'focused',
         SEND: 'sending',
-        SET_VALUE: {
-          actions: assign({
-            value: ({ event }) => event.value,
-          }),
-        },
-        SET_ERROR: {
-          actions: assign({
-            error: ({ event }) => event.error,
-            helperText: ({ event }) => event.helperText || '',
-          }),
-        },
-        SET_MODE: {
-          actions: assign({
-            mode: ({ event }) => event.mode,
-          }),
-        },
-        SELECT_CHIP: {
-          actions: assign({
-            activeChipId: ({ event, context }) => 
-              context.activeChipId === event.chipId ? null : event.chipId,
-          }),
-        },
-        DESELECT_CHIP: {
-          actions: assign({
-            activeChipId: () => null,
-          }),
-        },
       },
     },
     sending: {
@@ -257,22 +150,10 @@ export const promptInputMachine = createMachine({
         SEND_SUCCESS: 'idle',
         SEND_ERROR: {
           target: 'idle',
-          actions: assign({
-            error: () => true,
-            helperText: ({ event }) => event.message || 'Failed to send message',
-          }),
+          actions: 'setSendError',
         },
-        SET_MODE: {
-          actions: assign({
-            mode: ({ event }) => event.mode,
-          }),
-        },
-        // Allow chip deselection during sending, but not selection
-        DESELECT_CHIP: {
-          actions: assign({
-            activeChipId: () => null,
-          }),
-        },
+        // Only allow chip deselection during sending, not selection
+        SELECT_CHIP: undefined, // Disable chip selection during sending
       },
     },
   },
