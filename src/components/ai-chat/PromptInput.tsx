@@ -269,11 +269,12 @@ export const PromptInput: React.FC<PromptInputProps> = ({
 
     // Sync external error state with the machine
     React.useEffect(() => {
-        if (externalError !== state.context.error || externalHelperText !== state.context.helperText) {
+        const normalizedHelperText = externalHelperText ?? '';
+        if (externalError !== state.context.error || normalizedHelperText !== state.context.helperText) {
             send({
                 type: 'SET_ERROR',
                 error: externalError,
-                helperText: externalHelperText || ''
+                helperText: normalizedHelperText
             });
         }
     }, [externalError, externalHelperText, state.context.error, state.context.helperText, send]);

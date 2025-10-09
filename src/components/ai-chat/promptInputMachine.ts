@@ -33,7 +33,7 @@ export const promptInputMachine = setup({
     setMode: assign({
       mode: ({ event }) => event.mode,
     }),
-    selectChip: assign({
+    selectChip: assign({  
       activeChipId: ({ event, context }) => 
         context.activeChipId === event.chipId ? null : event.chipId,
     }),
