@@ -1,5 +1,5 @@
 import type { } from '@mui/material/themeCssVarsAugmentation';
-import React, { useRef, useState } from 'react';
+import React, { useRef } from 'react';
 import {
     Box,
     InputBase,
@@ -19,12 +19,12 @@ import {
     ArrowUpIcon,
 } from '@phosphor-icons/react';
 import { useMachine } from '@xstate/react';
-import { FileAttachment } from '../shared/FileAttachment';
+import { FileAttachmentsBar } from './FileAttachmentsBar';
 import { promptInputMachine } from './promptInputMachine';
-import type { PromptInputProps, SuggestionChip, AttachedFile } from './types';
+import type { PromptInputProps, SuggestionChip } from './types';
 import { FILE_UPLOAD_CONSTANTS } from './types';
-import { validateFiles, simulateFileUpload, fileListToArray } from './fileUploadUtils';
-import { useTextareaIsMultiline } from '../../hooks';
+import { fileListToArray } from './fileUploadUtils';
+import { useTextareaIsMultiline, useFileAttachments } from '../../hooks';
 
 // Suggestion chips configuration
 const SUGGESTION_CHIPS: SuggestionChip[] = [
@@ -238,17 +238,16 @@ export const PromptInput: React.FC<PromptInputProps> = ({
     const textFieldRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    // Snackbar state for error notifications
-    const [snackbarOpen, setSnackbarOpen] = useState(false);
-    const [snackbarMessage, setSnackbarMessage] = useState('');
-    const [snackbarSeverity, setSnackbarSeverity] = useState<'error' | 'warning' | 'info' | 'success'>('error');
-
-    // Helper function to show error messages
-    const showError = (message: string, severity: 'error' | 'warning' | 'info' | 'success' = 'error') => {
-        setSnackbarMessage(message);
-        setSnackbarSeverity(severity);
-        setSnackbarOpen(true);
-    };
+    // Use the file attachments hook
+    const {
+        attachedFiles,
+        addFiles,
+        removeFile,
+        hasUploadingFiles,
+        hasFailedFiles,
+        showError,
+        snackbar,
+    } = useFileAttachments();
 
     // Initialize the state machine
     const [state, send] = useMachine(promptInputMachine);
@@ -292,65 +291,12 @@ export const PromptInput: React.FC<PromptInputProps> = ({
         onChange(newValue);
     }, [send, onChange]);
 
-    // Helper function to create AttachedFile from File
-    const createAttachedFile = async (file: File): Promise<AttachedFile> => {
-        const attachedFile: AttachedFile = {
-            id: `file_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-            file,
-            fileName: file.name,
-            fileSize: file.size,
-            mimeType: file.type,
-            uploadStatus: 'uploading',
-            uploadProgress: 0,
-        };
-
-        // Generate image preview for image files
-        if (file.type.startsWith('image/')) {
-            try {
-                const imagePreview = await new Promise<string>((resolve, reject) => {
-                    const reader = new FileReader();
-                    reader.onload = (e) => resolve(e.target?.result as string);
-                    reader.onerror = reject;
-                    reader.readAsDataURL(file);
-                });
-                attachedFile.imagePreview = imagePreview;
-            } catch (error) {
-                console.warn('Failed to generate image preview:', error);
-            }
-        }
-
-        return attachedFile;
-    };
-
     // File handling functions
     const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const files = event.target.files;
         if (files && files.length > 0) {
             const fileArray = fileListToArray(files);
-            const { validFiles, errors } = validateFiles(fileArray, state.context.attachedFiles.length);
-
-            if (validFiles.length > 0) {
-                // Convert to AttachedFile objects with image previews
-                const attachedFiles = await Promise.all(validFiles.map(createAttachedFile));
-
-                send({ type: 'ADD_FILES', files: attachedFiles });
-
-                // Start upload simulation for each file
-                attachedFiles.forEach(attachedFile => {
-                    simulateFileUpload(
-                        attachedFile.id,
-                        (fileId, progress) => send({ type: 'UPDATE_FILE_PROGRESS', fileId, progress }),
-                        (fileId, uploadedUrl) => send({ type: 'FILE_UPLOAD_SUCCESS', fileId, uploadedUrl }),
-                        (fileId, error) => send({ type: 'FILE_UPLOAD_ERROR', fileId, error })
-                    );
-                });
-            }
-
-            // Show errors if any
-            if (errors.length > 0) {
-                console.error('File validation errors:', errors);
-                errors.forEach(error => showError(error));
-            }
+            await addFiles(fileArray);
         }
 
         // Reset file input
@@ -361,29 +307,20 @@ export const PromptInput: React.FC<PromptInputProps> = ({
         fileInputRef.current?.click();
     };
 
-    const handleRemoveFile = (fileId: string) => {
-        send({ type: 'REMOVE_FILE', fileId });
-    };
-
-    // Drag & drop removed — file selection still available via file input
-
     // Helper function to check if send is allowed
     const canSend = React.useCallback(() => {
         const hasText = state.context.value.trim().length > 0;
-        const hasUploadingFiles = state.context.attachedFiles.some((file: AttachedFile) => file.uploadStatus === 'uploading');
-        const hasFailedFiles = state.context.attachedFiles.some((file: AttachedFile) => file.uploadStatus === 'error');
-
         return hasText && !hasUploadingFiles && !hasFailedFiles && !disabled;
-    }, [state.context.value, state.context.attachedFiles, disabled]);
+    }, [state.context.value, hasUploadingFiles, hasFailedFiles, disabled]);
 
     const handleSend = React.useCallback(() => {
         if (!canSend()) {
             // Show appropriate error message
             if (!state.context.value.trim()) {
                 showError('Please enter a message before sending.', 'warning');
-            } else if (state.context.attachedFiles.some((file: AttachedFile) => file.uploadStatus === 'uploading')) {
+            } else if (hasUploadingFiles) {
                 showError('Please wait for files to finish uploading.', 'warning');
-            } else if (state.context.attachedFiles.some((file: AttachedFile) => file.uploadStatus === 'error')) {
+            } else if (hasFailedFiles) {
                 showError('Please remove or re-upload failed files.', 'error');
             }
             return;
@@ -396,7 +333,7 @@ export const PromptInput: React.FC<PromptInputProps> = ({
         setTimeout(() => {
             send({ type: 'SEND_SUCCESS' });
         }, 100);
-    }, [canSend, state.context.value, state.context.attachedFiles, send, onSend, showError]);
+    }, [canSend, state.context.value, hasUploadingFiles, hasFailedFiles, send, onSend, showError]);
 
     const handleSuggestionClick = React.useCallback((chipId: string) => {
         send({ type: 'SELECT_CHIP', chipId });
@@ -465,31 +402,10 @@ export const PromptInput: React.FC<PromptInputProps> = ({
             >
                 <Box sx={{ p: 2 }}>
                     {/* File Attachments Area */}
-                    {state.context.attachedFiles.length > 0 && (
-                        <Box sx={{
-                            mb: 2,
-                        }}>
-                            <Box sx={{
-                                display: 'flex',
-                                gap: 3,
-                                overflowX: 'auto',
-                            }}>
-                                {state.context.attachedFiles.map((file: AttachedFile) => (
-                                    <Box key={file.id} sx={{ flexShrink: 0 }}>
-                                        <FileAttachment
-                                            fileName={file.fileName}
-                                            mimeType={file.mimeType}
-                                            uploading={file.uploadStatus === 'uploading'}
-                                            uploadProgress={file.uploadProgress}
-                                            imagePreview={file.imagePreview}
-                                            compact={file.mimeType?.startsWith('image/') && !!file.imagePreview}
-                                            onRemove={() => handleRemoveFile(file.id)}
-                                        />
-                                    </Box>
-                                ))}
-                            </Box>
-                        </Box>
-                    )}
+                    <FileAttachmentsBar
+                        files={attachedFiles}
+                        onRemoveFile={removeFile}
+                    />
 
                     {/* Main Input Row */}
                     <InputRow
@@ -538,18 +454,18 @@ export const PromptInput: React.FC<PromptInputProps> = ({
 
             {/* Snackbar for error notifications */}
             <Snackbar
-                open={snackbarOpen}
+                open={snackbar.open}
                 autoHideDuration={6000}
-                onClose={() => setSnackbarOpen(false)}
+                onClose={snackbar.onClose}
                 anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
             >
                 <Alert
-                    onClose={() => setSnackbarOpen(false)}
-                    severity={snackbarSeverity}
+                    onClose={snackbar.onClose}
+                    severity={snackbar.severity}
                     variant="filled"
                     sx={{ width: '100%' }}
                 >
-                    {snackbarMessage}
+                    {snackbar.message}
                 </Alert>
             </Snackbar>
         </Box>

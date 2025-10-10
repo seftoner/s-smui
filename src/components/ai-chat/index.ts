@@ -2,6 +2,7 @@
 export { PromptInput } from './PromptInput';
 export { WelcomeSection } from './WelcomeSection';
 export { ChatHistorySidebar } from './ChatHistorySidebar';
+export { FileAttachmentsBar } from './FileAttachmentsBar';
 
 // Dialog components
 export { RenameChatDialog } from './RenameChatDialog';

@@ -190,7 +190,7 @@ export const FileAttachment: React.FC<FileAttachmentProps> = ({
                     position: 'relative',
                     width: 56,
                     height: 56,
-                    borderRadius: 2,
+                    borderRadius: 4,
                     overflow: 'visible', // Changed from 'hidden' to allow button to show
                     cursor: 'pointer',
                     '&:hover .remove-button': {
@@ -203,7 +203,7 @@ export const FileAttachment: React.FC<FileAttachmentProps> = ({
                     sx={{
                         width: '100%',
                         height: '100%',
-                        borderRadius: 2,
+                        borderRadius: 4,
                         overflow: 'hidden',
                     }}
                 >
@@ -311,7 +311,7 @@ export const FileAttachment: React.FC<FileAttachmentProps> = ({
                 borderRadius: 4,
                 backgroundColor: theme.vars.palette.background.paper,
                 border: `1px solid ${theme.vars.palette.divider}`,
-                width: 220,
+                width: 250,
                 position: 'relative',
                 cursor: 'pointer',
                 transition: 'all 0.2s ease',
@@ -328,6 +328,7 @@ export const FileAttachment: React.FC<FileAttachmentProps> = ({
                 sx={{
                     width: 40,
                     height: 40,
+
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',

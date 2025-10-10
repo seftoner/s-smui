@@ -73,18 +73,8 @@ export const AIChatApp: React.FC = () => {
                         onChange={setMessage}
                         onSend={handleSend}
                         disabled={false}
-                        mode="chat"
-                    />
-
-                    <Box sx={{ height: 48 }} />
-
-                    {/* <PromptInput
-                        value={message}
-                        onChange={setMessage}
-                        onSend={handleSend}
-                        disabled={false}
                         mode="landing"
-                    /> */}
+                    />
                 </Box>
             </Box>
 
