@@ -52,7 +52,7 @@ export type PromptInputEvent =
 export interface PromptInputProps {
   value?: string;
   onChange: (value: string) => void;
-  onSend: () => void;
+  onSend: () => void | Promise<void>;
   onChipChange?: (activeChipId: string | null) => void; // Callback when active chip changes
   onFilesChange?: (files: AttachedFile[]) => void; // Callback when files change
   disabled?: boolean;
