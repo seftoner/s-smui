@@ -312,6 +312,7 @@ export const FilterInput: React.FC<FilterInputProps> = ({
                                 value={filter.value as string}
                                 onChange={handleTextValueChange}
                                 disabled={!filter.enabled}
+                                autoComplete="off"
                                 slotProps={{
                                     input: {
                                         disableUnderline: true,
@@ -447,6 +448,12 @@ export const FilterInput: React.FC<FilterInputProps> = ({
                             value={filter.value as string}
                             onChange={handleTextValueChange}
                             autoFocus
+                            autoComplete="off"
+                            slotProps={{
+                                input: {
+                                    autoComplete: 'off',
+                                },
+                            }}
                             onKeyDown={(e) => {
                                 if (e.key === 'Enter') {
                                     handleValueClose();
