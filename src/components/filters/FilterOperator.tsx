@@ -13,12 +13,11 @@ export const FilterOperator: React.FC<FilterOperatorProps> = ({ operator, onClic
         <Box
             onClick={onClick}
             sx={(theme) => ({
-                height: 30,
+                minHeight: 30,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'flex-start',
-                px: 2,
-                width: '100%',
+                px: 6,
                 cursor: 'pointer',
                 transition: 'background-color 0.2s',
                 '&:hover': {

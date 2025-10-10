@@ -132,7 +132,8 @@ export const FilterBar: React.FC<FilterBarProps> = ({ onApply }) => {
                         {/* Filter Item */}
                         <Box
                             sx={{
-                                px: 2,
+                                pr: 2,
+                                pl: 4,
                                 py: 1,
                             }}
                         >
