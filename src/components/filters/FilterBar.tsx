@@ -100,7 +100,8 @@ export const FilterBar: React.FC<FilterBarProps> = ({ onApply }) => {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
-                    px: 1,
+                    pl: 2,
+                    pr: 1,
                     py: 1,
                     flexShrink: 0, // Don't shrink header
                 }}
