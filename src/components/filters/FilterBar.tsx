@@ -119,7 +119,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({ onApply }) => {
                 sx={{
                     display: 'flex',
                     flexDirection: 'column',
-                    gap: 0.5,
+                    gap: 1,
                     flex: 1, // Take up remaining space
                     overflowY: 'auto', // Make scrollable
                     overflowX: 'hidden',
@@ -174,7 +174,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({ onApply }) => {
                         fontWeight: 500,
                         lineHeight: '24px',
                         color: 'primary.main',
-                        py: 0.75,
+                        py: 1,
                         px: 1,
                         borderRadius: 2,
                         '&:hover': {
@@ -190,7 +190,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({ onApply }) => {
             <Box
                 sx={{
                     px: 2,
-                    py: 1.5,
+                    py: 2,
                     flexShrink: 0, // Don't shrink apply button
                 }}
             >

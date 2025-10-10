@@ -49,10 +49,12 @@ export const FilterInput: React.FC<FilterInputProps> = ({
     // Handle filter name change
     const handleFilterNameClick = (event: React.MouseEvent<HTMLElement>) => {
         setFilterNameAnchor(event.currentTarget);
+        setIsHovered(false);
     };
 
     const handleFilterNameClose = () => {
         setFilterNameAnchor(null);
+        setIsHovered(false); // Reset hover state when menu closes
     };
 
     const handleFilterNameSelect = (newFilterId: string) => {
@@ -66,6 +68,8 @@ export const FilterInput: React.FC<FilterInputProps> = ({
             defaultValue = [];
         }
 
+        setIsHovered(false);
+
         onChange({
             ...filter,
             filterId: newFilterId,
@@ -78,10 +82,12 @@ export const FilterInput: React.FC<FilterInputProps> = ({
     // Handle operator change
     const handleOperatorClick = (event: React.MouseEvent<HTMLElement>) => {
         setOperatorAnchor(event.currentTarget);
+        setIsHovered(false);
     };
 
     const handleOperatorClose = () => {
         setOperatorAnchor(null);
+        setIsHovered(false); // Reset hover state when menu closes
     };
 
     const handleOperatorSelect = (operator: OperatorConfig) => {
@@ -99,6 +105,7 @@ export const FilterInput: React.FC<FilterInputProps> = ({
 
     const handleValueClose = () => {
         setValueAnchor(null);
+        setIsHovered(false); // Reset hover state when menu closes
     };
 
     const handleTextValueChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -184,7 +191,7 @@ export const FilterInput: React.FC<FilterInputProps> = ({
                     overflow: 'hidden',
                     boxShadow: '0px 1px 2px 0px rgba(65, 50, 42, 0.08)',
                     '&:hover': {
-                        borderColor: 'primary.main',
+                        borderColor: 'primary.light',
                     },
                 }}
             >
@@ -192,8 +199,9 @@ export const FilterInput: React.FC<FilterInputProps> = ({
                 <Box
                     onClick={handleFilterNameClick}
                     sx={{
+                        minHeight: 44,
                         display: 'flex',
-                        alignItems: 'baseline',
+                        alignItems: 'center',
                         justifyContent: 'space-between',
                         px: 2,
                         py: 1,
@@ -203,12 +211,19 @@ export const FilterInput: React.FC<FilterInputProps> = ({
                         },
                     }}
                 >
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Box sx={{ display: 'flex', gap: 1 }}>
                         <Typography variant="body1">
                             {filterDef.name}
                         </Typography>
                     </Box>
-                    <Icon fontSize='small' sx={{ color: 'action.active' }}>
+                    <Icon
+                        fontSize='small'
+                        sx={{
+                            color: 'action.active',
+                            display: 'flex',
+                            alignItems: 'center',
+                        }}
+                    >
                         <CaretDownIcon />
                     </Icon>
                 </Box>
@@ -220,7 +235,7 @@ export const FilterInput: React.FC<FilterInputProps> = ({
                 <Box
                     sx={{
                         display: 'flex',
-                        alignItems: 'center',
+                        alignItems: 'stretch',
                         minHeight: 44,
                     }}
                 >
@@ -231,10 +246,10 @@ export const FilterInput: React.FC<FilterInputProps> = ({
                         sx={{
                             display: 'flex',
                             alignItems: 'center',
-                            justifyContent: 'center',
-                            px: 1.5,
+                            justifyContent: 'space-between',
+                            flex: 1,
+                            px: 2,
                             py: 1,
-                            minWidth: 130,
                             cursor: 'pointer',
                             '&:hover': {
                                 bgcolor: 'action.hover',
@@ -255,7 +270,16 @@ export const FilterInput: React.FC<FilterInputProps> = ({
                                 },
                             }}
                         />
-                        <CaretDownIcon size={24} style={{ marginLeft: 8 }} />
+                        <Icon
+                            fontSize='small'
+                            sx={{
+                                color: 'action.active',
+                                display: 'flex',
+                                alignItems: 'center',
+                            }}
+                        >
+                            <CaretDownIcon />
+                        </Icon>
                     </Box>
 
                     {/* Vertical Divider */}
@@ -266,11 +290,11 @@ export const FilterInput: React.FC<FilterInputProps> = ({
                     <Box
                         onClick={handleValueClick}
                         sx={{
-                            flex: 1,
+                            flex: 1.6,
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'space-between',
-                            px: 1.5,
+                            px: 2,
                             py: 1,
                             cursor: 'pointer',
                             '&:hover': {
@@ -281,7 +305,16 @@ export const FilterInput: React.FC<FilterInputProps> = ({
                         <Typography variant="body1" sx={{ fontWeight: 400 }}>
                             {getDisplayValue()}
                         </Typography>
-                        <CaretDownIcon size={24} />
+                        <Icon
+                            fontSize='small'
+                            sx={{
+                                color: 'action.active',
+                                display: 'flex',
+                                alignItems: 'center',
+                            }}
+                        >
+                            <CaretDownIcon />
+                        </Icon>
                     </Box>
                 </Box>
             </Paper>
@@ -290,7 +323,7 @@ export const FilterInput: React.FC<FilterInputProps> = ({
             <Box
                 sx={{
                     display: 'flex',
-                    gap: 0.5,
+                    gap: 1,
                     flexDirection: 'column',
                     alignItems: 'center',
                     // width: 80, // Fixed width to reserve space
