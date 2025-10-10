@@ -44,7 +44,7 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
     return (
         <NotificationContext.Provider value={{ showNotification }}>
             {children}
-            
+
             {/* Global Snackbar */}
             <Snackbar
                 open={!!notification}
