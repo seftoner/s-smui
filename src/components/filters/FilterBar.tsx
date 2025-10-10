@@ -7,6 +7,7 @@ import { FilterOperator } from './FilterOperator';
 import type { ActiveFilter, FilterDefinition } from './types';
 import { fetchFilterDefinitions, getDefaultOperator } from './filterConfigService';
 import { filterPanelMachine } from './filterPanelMachine';
+import { calculateCanApply } from './filterUtils';
 
 interface FilterBarProps {
     onApply?: (filters: ActiveFilter[], operator: 'and' | 'or') => void;
@@ -74,6 +75,8 @@ export const FilterBar: React.FC<FilterBarProps> = ({ onApply }) => {
             onApply(state.context.filters, state.context.logicalOperator);
         }
     };
+
+    const canApply = calculateCanApply(state.context.filters);
 
     if (isLoading) {
         return null; // or a loading skeleton
@@ -199,7 +202,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({ onApply }) => {
                 <Button
                     fullWidth
                     variant="contained"
-                    disabled={!state.context.canApply}
+                    disabled={!canApply}
                     onClick={handleApply}
                     sx={{
                         textTransform: 'none',
@@ -208,10 +211,10 @@ export const FilterBar: React.FC<FilterBarProps> = ({ onApply }) => {
                         lineHeight: '24px',
                         borderRadius: 2,
                         py: 1,
-                        bgcolor: state.context.canApply ? 'primary.main' : 'rgba(14, 15, 18, 0.1)',
-                        color: state.context.canApply ? 'white' : 'rgba(14, 15, 18, 0.38)',
+                        bgcolor: canApply ? 'primary.main' : 'rgba(14, 15, 18, 0.1)',
+                        color: canApply ? 'white' : 'rgba(14, 15, 18, 0.38)',
                         '&:hover': {
-                            bgcolor: state.context.canApply ? 'primary.dark' : 'rgba(14, 15, 18, 0.1)',
+                            bgcolor: canApply ? 'primary.dark' : 'rgba(14, 15, 18, 0.1)',
                         },
                         '&.Mui-disabled': {
                             bgcolor: 'rgba(14, 15, 18, 0.1)',
