@@ -12,9 +12,6 @@ import {
     Alert,
 } from '@mui/material';
 import {
-    PencilCircleIcon,
-    CheckCircleIcon,
-    FileTextIcon,
     PaperclipIcon,
     ArrowUpIcon,
 } from '@phosphor-icons/react';
@@ -26,27 +23,6 @@ import { FILE_UPLOAD_CONSTANTS } from './types';
 import { fileListToArray } from './fileUploadUtils';
 import { useTextareaIsMultiline, useFileAttachments } from '../../hooks';
 
-// Suggestion chips configuration
-const SUGGESTION_CHIPS: SuggestionChip[] = [
-    {
-        id: 'improving-writing',
-        label: 'Improving writing',
-        icon: <PencilCircleIcon size={20} />,
-        systemPrompt: 'You are a writing assistant focused on improving text quality, grammar, and style.'
-    },
-    {
-        id: 'auto-correction',
-        label: 'Auto-correction',
-        icon: <CheckCircleIcon size={20} />,
-        systemPrompt: 'You are a proofreading assistant that corrects spelling, grammar, and punctuation errors.'
-    },
-    {
-        id: 'text-summarisation',
-        label: 'Text summarisation',
-        icon: <FileTextIcon size={20} />,
-        systemPrompt: 'You are a summarization assistant that creates concise summaries of provided text.'
-    }
-];
 
 // Reusable send button component to avoid duplication
 const SendButton = React.memo<{ onClick: () => void; disabled: boolean; color?: 'primary' | 'default' }>(({ onClick, disabled, color = 'primary' }) => {
@@ -98,6 +74,7 @@ const InputRow = React.memo<{
     canSend: () => boolean;
     handleSend: () => void;
     theme: any;
+    showCompactLayout: boolean;
 }>(({
     state,
     send,
@@ -109,21 +86,21 @@ const InputRow = React.memo<{
     disabled,
     canSend,
     handleSend,
+    showCompactLayout,
 }) => {
-    const isChat = state.context.mode === 'chat';
     const { ref: textareaRef, isMultiline } = useTextareaIsMultiline<HTMLTextAreaElement>();
-    const shouldUseVerticalLayout = isChat && isMultiline;
+    const shouldUseVerticalLayout = showCompactLayout && isMultiline;
 
     return (
         <Box sx={{
             display: 'flex',
             flexDirection: shouldUseVerticalLayout ? 'column' : 'row',
             alignItems: shouldUseVerticalLayout ? 'stretch' : 'center',
-            mb: isChat ? 0 : 2,
-            ml: isChat ? 0 : 2,
+            mb: showCompactLayout ? 0 : 2,
+            ml: showCompactLayout ? 0 : 2,
         }}>
             {/* File attachment button for horizontal layout */}
-            {isChat && !shouldUseVerticalLayout && (
+            {showCompactLayout && !shouldUseVerticalLayout && (
                 <FileAttachmentButton onClick={handleAddFilesClick} />
             )}
 
@@ -146,12 +123,12 @@ const InputRow = React.memo<{
             />
 
             {/* Send button for horizontal layout */}
-            {isChat && !shouldUseVerticalLayout && (
+            {showCompactLayout && !shouldUseVerticalLayout && (
                 <SendButton onClick={handleSend} disabled={!canSend()} color="primary" />
             )}
 
             {/* Buttons Container for vertical layout only */}
-            {isChat && shouldUseVerticalLayout && (
+            {showCompactLayout && shouldUseVerticalLayout && (
                 <Box sx={{
                     display: 'flex',
                     justifyContent: 'space-between',
@@ -168,15 +145,17 @@ const InputRow = React.memo<{
 });
 InputRow.displayName = 'InputRow';
 
-// Footer component for landing mode
-const LandingFooter = React.memo<{
-    state: any;
+// Suggestions footer - shows suggestion chips and controls
+const SuggestionsFooter = React.memo<{
+    suggestions: SuggestionChip[];
+    activeChipId: string | null;
     handleAddFilesClick: () => void;
     handleSuggestionClick: (chipId: string) => void;
     canSend: () => boolean;
     handleSend: () => void;
 }>(({
-    state,
+    suggestions,
+    activeChipId,
     handleAddFilesClick,
     handleSuggestionClick,
     canSend,
@@ -201,8 +180,8 @@ const LandingFooter = React.memo<{
                 <FileAttachmentButton onClick={handleAddFilesClick} />
 
                 {/* Suggestion chips */}
-                {SUGGESTION_CHIPS.map((suggestion) => {
-                    const isActive = state.context.activeChipId === suggestion.id;
+                {suggestions.map((suggestion) => {
+                    const isActive = activeChipId === suggestion.id;
                     return (
                         <Chip
                             key={suggestion.id}
@@ -221,7 +200,7 @@ const LandingFooter = React.memo<{
         </Box>
     );
 });
-LandingFooter.displayName = 'LandingFooter';
+SuggestionsFooter.displayName = 'SuggestionsFooter';
 
 export const PromptInput: React.FC<PromptInputProps> = ({
     value: externalValue,
@@ -230,13 +209,16 @@ export const PromptInput: React.FC<PromptInputProps> = ({
     onChipChange,
     disabled = false,
     placeholder = "Ask me anything...",
-    mode: externalMode = 'landing',
+    suggestions,
     error: externalError = false,
     helperText: externalHelperText,
 }) => {
     const theme = useTheme();
     const textFieldRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    // Check if we should show suggestions footer
+    const hasSuggestions = Boolean(suggestions && suggestions.length > 0);
 
     // Use the file attachments hook
     const {
@@ -245,7 +227,6 @@ export const PromptInput: React.FC<PromptInputProps> = ({
         removeFile,
         hasUploadingFiles,
         hasFailedFiles,
-        showError,
         snackbar,
     } = useFileAttachments();
 
@@ -258,13 +239,6 @@ export const PromptInput: React.FC<PromptInputProps> = ({
             send({ type: 'SET_VALUE', value: externalValue });
         }
     }, [externalValue, state.context.value, send]);
-
-    // Sync external mode changes with the machine
-    React.useEffect(() => {
-        if (externalMode !== state.context.mode) {
-            send({ type: 'SET_MODE', mode: externalMode });
-        }
-    }, [externalMode, state.context.mode, send]);
 
     // Sync external error state with the machine
     React.useEffect(() => {
@@ -315,14 +289,6 @@ export const PromptInput: React.FC<PromptInputProps> = ({
 
     const handleSend = React.useCallback(() => {
         if (!canSend()) {
-            // Show appropriate error message
-            if (!state.context.value.trim()) {
-                showError('Please enter a message before sending.', 'warning');
-            } else if (hasUploadingFiles) {
-                showError('Please wait for files to finish uploading.', 'warning');
-            } else if (hasFailedFiles) {
-                showError('Please remove or re-upload failed files.', 'error');
-            }
             return;
         }
 
@@ -333,7 +299,7 @@ export const PromptInput: React.FC<PromptInputProps> = ({
         setTimeout(() => {
             send({ type: 'SEND_SUCCESS' });
         }, 100);
-    }, [canSend, state.context.value, hasUploadingFiles, hasFailedFiles, send, onSend, showError]);
+    }, [canSend, send, onSend]);
 
     const handleSuggestionClick = React.useCallback((chipId: string) => {
         send({ type: 'SELECT_CHIP', chipId });
@@ -362,11 +328,6 @@ export const PromptInput: React.FC<PromptInputProps> = ({
         return theme.vars.palette.divider;
     };
 
-    const getBackgroundColor = () => {
-        if (state.context.mode === 'chat') return theme.vars.palette.background.default;
-        return theme.vars.palette.background.paper;
-    };
-
     const isFocused = state.matches('focused') || state.matches('focusedAndHovered');
 
     return (
@@ -388,7 +349,7 @@ export const PromptInput: React.FC<PromptInputProps> = ({
                 onMouseLeave={() => send({ type: 'UNHOVER' })}
                 /* drag & drop handlers removed - keep file input for attachments */
                 sx={{
-                    backgroundColor: getBackgroundColor(),
+                    // backgroundColor: getBackgroundColor(),
                     borderRadius: 8, // 24px based on cornerRadius-4
                     border: `1px solid ${getBorderColor()}`,
                     overflow: 'hidden',
@@ -420,13 +381,15 @@ export const PromptInput: React.FC<PromptInputProps> = ({
                         canSend={canSend}
                         handleSend={handleSend}
                         theme={theme}
+                        showCompactLayout={!hasSuggestions}
                     />
 
 
-                    {/* Footer for Landing Mode */}
-                    {state.context.mode === 'landing' && (
-                        <LandingFooter
-                            state={state}
+                    {/* Suggestions Footer - only shown when suggestions are provided */}
+                    {hasSuggestions && suggestions && (
+                        <SuggestionsFooter
+                            suggestions={suggestions}
+                            activeChipId={state.context.activeChipId}
                             handleAddFilesClick={handleAddFilesClick}
                             handleSuggestionClick={handleSuggestionClick}
                             canSend={canSend}

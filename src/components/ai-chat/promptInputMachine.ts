@@ -30,9 +30,6 @@ export const promptInputMachine = setup({
       error: ({ event }) => event.error,
       helperText: ({ event }) => event.helperText || '',
     }),
-    setMode: assign({
-      mode: ({ event }) => event.mode,
-    }),
     selectChip: assign({  
       activeChipId: ({ event, context }) => 
         context.activeChipId === event.chipId ? null : event.chipId,
@@ -97,7 +94,6 @@ export const promptInputMachine = setup({
     value: '',
     error: false,
     helperText: '',
-    mode: 'landing',
     activeChipId: null,
     attachedFiles: [],
     isDragOver: false,
@@ -107,7 +103,6 @@ export const promptInputMachine = setup({
   on: {
     SET_VALUE: { actions: 'setValue' },
     SET_ERROR: { actions: 'setError' },
-    SET_MODE: { actions: 'setMode' },
     SELECT_CHIP: { actions: 'selectChip' },
     DESELECT_CHIP: { actions: 'deselectChip' },
     ADD_FILES: { actions: 'addFiles' },

@@ -3,10 +3,14 @@ import {
     Box,
 } from '@mui/material';
 import { PromptInput, WelcomeSection, ChatHistorySidebar } from '../../components/ai-chat';
+import { getSuggestions } from '../../services/suggestionsService';
 
 export const AIChatApp: React.FC = () => {
     const [message, setMessage] = useState('');
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(true);
+
+    // Get suggestions for landing mode
+    const suggestions = getSuggestions();
 
     const handleSend = () => {
         if (!message.trim()) return;
@@ -73,7 +77,7 @@ export const AIChatApp: React.FC = () => {
                         onChange={setMessage}
                         onSend={handleSend}
                         disabled={false}
-                        mode="landing"
+                        suggestions={suggestions}
                     />
                 </Box>
             </Box>

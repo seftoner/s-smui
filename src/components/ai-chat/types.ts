@@ -1,8 +1,5 @@
 import React from 'react';
 
-// Prompt input mode type
-export type PromptInputMode = 'landing' | 'chat';
-
 // File upload states
 export type FileUploadStatus = 'uploading' | 'completed' | 'error';
 
@@ -25,7 +22,6 @@ export interface PromptInputContext {
   value: string;
   error: boolean;
   helperText: string;
-  mode: PromptInputMode;
   activeChipId: string | null; // ID of the currently active predefined prompt chip
   attachedFiles: AttachedFile[]; // Array of attached files
   isDragOver: boolean; // Whether files are being dragged over the component
@@ -42,7 +38,6 @@ export type PromptInputEvent =
   | { type: 'SEND_ERROR'; message?: string }
   | { type: 'SET_VALUE'; value: string }
   | { type: 'SET_ERROR'; error: boolean; helperText?: string }
-  | { type: 'SET_MODE'; mode: PromptInputMode }
   | { type: 'SELECT_CHIP'; chipId: string }
   | { type: 'DESELECT_CHIP' }
   | { type: 'ADD_FILES'; files: AttachedFile[] }
@@ -62,7 +57,7 @@ export interface PromptInputProps {
   onFilesChange?: (files: AttachedFile[]) => void; // Callback when files change
   disabled?: boolean;
   placeholder?: string;
-  mode?: PromptInputMode;
+  suggestions?: SuggestionChip[]; // Optional array of suggestion chips - when provided, shows landing mode
   error?: boolean;
   helperText?: string;
 }
