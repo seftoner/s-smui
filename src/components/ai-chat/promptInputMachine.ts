@@ -16,7 +16,6 @@ import { FILE_UPLOAD_CONSTANTS } from './types';
  * - value: Current input text value
  * - error: Whether there's an error state
  * - helperText: Help/error message text
- * - mode: UI mode ('landing' | 'chat')
  * 
  * Events: See PromptInputEvent type for all supported events
  */

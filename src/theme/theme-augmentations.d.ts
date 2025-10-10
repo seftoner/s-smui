@@ -16,6 +16,16 @@ declare module '@mui/material/styles' {
       promptInput?: string;
     };
   }
+
+  // Augment background palette to include all custom surfaces
+  interface TypeBackground {
+    surface_0: string;
+    surface_1: string;
+    surface_2: string;
+    surface_3: string;
+    surface_ai_1: string;
+    surface_ai_2: string;
+  }
 }
 
 // Augment IconButton to support our custom xsmall size
