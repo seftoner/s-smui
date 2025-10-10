@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Button, IconButton, Typography, Paper } from '@mui/material';
-import { PlusIcon, TextIndentIcon } from '@phosphor-icons/react';
+import { PlusIcon, TextIndentIcon, TrashIcon } from '@phosphor-icons/react';
 import { useMachine } from '@xstate/react';
 import { FilterInput } from './FilterInput';
 import { FilterOperator } from './FilterOperator';
+import { FilterEmptyState } from './FilterEmptyState';
 import type { ActiveFilter, FilterDefinition } from './types';
 import { fetchFilterDefinitions, getDefaultOperator } from './filterConfigService';
 import { filterPanelMachine } from './filterPanelMachine';
@@ -53,22 +54,6 @@ export const FilterBar: React.FC<FilterBarProps> = ({ onApply }) => {
         send({ type: 'ADD_FILTER', filter: newFilter });
     };
 
-    const handleFilterChange = (filterId: string, updatedFilter: ActiveFilter) => {
-        send({ type: 'UPDATE_FILTER', id: filterId, filter: updatedFilter });
-    };
-
-    const handleFilterDelete = (filterId: string) => {
-        send({ type: 'DELETE_FILTER', id: filterId });
-    };
-
-    const handleFilterToggle = (filterId: string) => {
-        send({ type: 'TOGGLE_FILTER_ENABLED', id: filterId });
-    };
-
-    const handleToggleOperator = () => {
-        send({ type: 'TOGGLE_LOGICAL_OPERATOR' });
-    };
-
     const handleApply = () => {
         send({ type: 'APPLY_FILTERS' });
         if (onApply) {
@@ -103,7 +88,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({ onApply }) => {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
-                    pl: 2,
+                    pl: 4,
                     pr: 1,
                     py: 1,
                     flexShrink: 0, // Don't shrink header
@@ -113,9 +98,22 @@ export const FilterBar: React.FC<FilterBarProps> = ({ onApply }) => {
                     variant="subtitle1">
                     Filters
                 </Typography>
-                <IconButton size="medium">
-                    <TextIndentIcon />
-                </IconButton>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    {state.context.filters.length > 0 && (
+                        <Button
+                            size="small"
+                            onClick={() => send({ type: 'CLEAR_FILTERS' })}
+                            startIcon={<TrashIcon />}
+                            variant='text'
+                            color='error'
+                        >
+                            Reset
+                        </Button>
+                    )}
+                    <IconButton size="medium">
+                        <TextIndentIcon />
+                    </IconButton>
+                </Box>
             </Box>
 
             {/* Scrollable Filters List */}
@@ -130,6 +128,10 @@ export const FilterBar: React.FC<FilterBarProps> = ({ onApply }) => {
                     minHeight: 0, // Allow shrinking
                 }}
             >
+                {/* Empty state */}
+                {state.context.filters.length === 0 && <FilterEmptyState />}
+
+                {/* Filter list */}
                 {state.context.filters.map((filter, index) => (
                     <React.Fragment key={filter.id}>
                         {/* Filter Item */}
@@ -143,9 +145,9 @@ export const FilterBar: React.FC<FilterBarProps> = ({ onApply }) => {
                             <FilterInput
                                 filter={filter}
                                 availableFilters={availableFilters}
-                                onChange={(updated) => handleFilterChange(filter.id, updated)}
-                                onDelete={() => handleFilterDelete(filter.id)}
-                                onToggleEnabled={() => handleFilterToggle(filter.id)}
+                                onChange={(updated) => send({ type: 'UPDATE_FILTER', id: filter.id, filter: updated })}
+                                onDelete={() => send({ type: 'DELETE_FILTER', id: filter.id })}
+                                onToggleEnabled={() => send({ type: 'TOGGLE_FILTER_ENABLED', id: filter.id })}
                             />
                         </Box>
 
@@ -153,7 +155,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({ onApply }) => {
                         {index < state.context.filters.length - 1 && (
                             <FilterOperator
                                 operator={state.context.logicalOperator}
-                                onClick={handleToggleOperator}
+                                onClick={() => send({ type: 'TOGGLE_LOGICAL_OPERATOR' })}
                             />
                         )}
                     </React.Fragment>
@@ -204,23 +206,6 @@ export const FilterBar: React.FC<FilterBarProps> = ({ onApply }) => {
                     variant="contained"
                     disabled={!canApply}
                     onClick={handleApply}
-                    sx={{
-                        textTransform: 'none',
-                        fontSize: '14px',
-                        fontWeight: 500,
-                        lineHeight: '24px',
-                        borderRadius: 2,
-                        py: 1,
-                        bgcolor: canApply ? 'primary.main' : 'rgba(14, 15, 18, 0.1)',
-                        color: canApply ? 'white' : 'rgba(14, 15, 18, 0.38)',
-                        '&:hover': {
-                            bgcolor: canApply ? 'primary.dark' : 'rgba(14, 15, 18, 0.1)',
-                        },
-                        '&.Mui-disabled': {
-                            bgcolor: 'rgba(14, 15, 18, 0.1)',
-                            color: 'rgba(14, 15, 18, 0.38)',
-                        },
-                    }}
                 >
                     Apply filter
                 </Button>
