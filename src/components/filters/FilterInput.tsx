@@ -100,7 +100,10 @@ export const FilterInput: React.FC<FilterInputProps> = ({
 
     // Handle value change
     const handleValueClick = (event: React.MouseEvent<HTMLElement>) => {
-        setValueAnchor(event.currentTarget);
+        // Only show menu for select types, not for text
+        if (filterDef.valueType !== 'text') {
+            setValueAnchor(event.currentTarget);
+        }
     };
 
     const handleValueClose = () => {
@@ -197,7 +200,7 @@ export const FilterInput: React.FC<FilterInputProps> = ({
             >
                 {/* Filter Name Row */}
                 <Box
-                    onClick={handleFilterNameClick}
+                    onClick={filter.enabled ? handleFilterNameClick : undefined}
                     sx={{
                         minHeight: 44,
                         display: 'flex',
@@ -205,10 +208,10 @@ export const FilterInput: React.FC<FilterInputProps> = ({
                         justifyContent: 'space-between',
                         px: 2,
                         py: 1,
-                        cursor: 'pointer',
-                        '&:hover': {
+                        cursor: filter.enabled ? 'pointer' : 'default',
+                        '&:hover': filter.enabled ? {
                             bgcolor: 'action.hover',
-                        },
+                        } : {},
                     }}
                 >
                     <Box sx={{ display: 'flex', gap: 1 }}>
@@ -242,7 +245,7 @@ export const FilterInput: React.FC<FilterInputProps> = ({
 
                     {/* Operator Section */}
                     <Box
-                        onClick={handleOperatorClick}
+                        onClick={filter.enabled ? handleOperatorClick : undefined}
                         sx={{
                             display: 'flex',
                             alignItems: 'center',
@@ -250,10 +253,10 @@ export const FilterInput: React.FC<FilterInputProps> = ({
                             flex: 1,
                             px: 2,
                             py: 1,
-                            cursor: 'pointer',
-                            '&:hover': {
+                            cursor: filter.enabled ? 'pointer' : 'default',
+                            '&:hover': filter.enabled ? {
                                 bgcolor: 'action.hover',
-                            },
+                            } : {},
                         }}
                     >
                         <Chip
@@ -287,35 +290,67 @@ export const FilterInput: React.FC<FilterInputProps> = ({
 
 
                     {/* Value Section */}
-                    <Box
-                        onClick={handleValueClick}
-                        sx={{
-                            flex: 1.6,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            px: 2,
-                            py: 1,
-                            cursor: 'pointer',
-                            '&:hover': {
-                                bgcolor: 'action.hover',
-                            },
-                        }}
-                    >
-                        <Typography variant="body1" sx={{ fontWeight: 400 }}>
-                            {getDisplayValue()}
-                        </Typography>
-                        <Icon
-                            fontSize='small'
+                    {filterDef.valueType === 'text' ? (
+                        // Text input directly in the value section
+                        <Box
                             sx={{
-                                color: 'action.active',
+                                flex: 1.6,
                                 display: 'flex',
                                 alignItems: 'center',
+                                px: 2,
+                                py: 1,
+                                '&:hover': filter.enabled ? {
+                                    bgcolor: 'action.hover',
+                                } : {},
                             }}
                         >
-                            <CaretDownIcon />
-                        </Icon>
-                    </Box>
+                            <TextField
+                                fullWidth
+                                size="small"
+                                variant="standard"
+                                placeholder={filterDef.placeholder || 'Enter value...'}
+                                value={filter.value as string}
+                                onChange={handleTextValueChange}
+                                disabled={!filter.enabled}
+                                slotProps={{
+                                    input: {
+                                        disableUnderline: true,
+                                    },
+                                }}
+                            />
+                        </Box>
+                    ) : (
+                        // Clickable area for select types
+                        <Box
+                            onClick={filter.enabled ? handleValueClick : undefined}
+                            sx={{
+                                flex: 1.6,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                px: 2,
+                                py: 1,
+                                cursor: filter.enabled ? 'pointer' : 'default',
+                                '&:hover': filter.enabled ? {
+                                    bgcolor: 'action.hover',
+                                } : {},
+                            }}
+                        >
+                            <Typography variant="body1" sx={{ fontWeight: 400 }}>
+                                {getDisplayValue()}
+                            </Typography>
+                            <Icon
+                                fontSize='small'
+                                sx={{
+                                    color: 'action.active',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                }}
+                            >
+                                <CaretDownIcon />
+                            </Icon>
+                        </Box>
+                    )}
                 </Box>
             </Paper>
 
