@@ -3,7 +3,7 @@ import { CacheProvider } from '@emotion/react';
 import createCache from '@emotion/cache';
 import { prefixer } from 'stylis';
 import rtlPlugin from '@mui/stylis-plugin-rtl';
-import { ThemeModeProvider } from './contexts';
+import { ThemeModeProvider, NotificationProvider } from './contexts';
 import { Layout } from './components';
 import { AppThemeProvider } from './contexts';
 import {
@@ -29,18 +29,20 @@ function App() {
       <ThemeModeProvider>
         <Router>
           <AppThemeProvider>
-            <Layout>
-              <Routes>
-                <Route path="/" element={<HomeApp />} />
-                <Route path="/search" element={<SearchApp />} />
-                <Route path="/tasks" element={<TaskManagementApp />} />
-                <Route path="/documents" element={<DocumentsApp />} />
-                <Route path="/variation" element={<VariationCentreApp />} />
-                <Route path="/chat" element={<AIChatApp />} />
-                <Route path="/playground" element={<PlaygroundApp />} />
-                <Route path="/more-apps" element={<MoreAppsApp />} />
-              </Routes>
-            </Layout>
+            <NotificationProvider>
+              <Layout>
+                <Routes>
+                  <Route path="/" element={<HomeApp />} />
+                  <Route path="/search" element={<SearchApp />} />
+                  <Route path="/tasks" element={<TaskManagementApp />} />
+                  <Route path="/documents" element={<DocumentsApp />} />
+                  <Route path="/variation" element={<VariationCentreApp />} />
+                  <Route path="/chat" element={<AIChatApp />} />
+                  <Route path="/playground" element={<PlaygroundApp />} />
+                  <Route path="/more-apps" element={<MoreAppsApp />} />
+                </Routes>
+              </Layout>
+            </NotificationProvider>
           </AppThemeProvider>
         </Router>
       </ThemeModeProvider>

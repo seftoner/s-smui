@@ -6,15 +6,7 @@
 import { useState, useCallback } from 'react';
 import type { AttachedFile } from '../components/ai-chat/types';
 import { validateFiles, simulateFileUpload } from '../components/ai-chat/fileUploadUtils';
-
-export type SnackbarSeverity = 'error' | 'warning' | 'info' | 'success';
-
-export interface SnackbarState {
-    open: boolean;
-    message: string;
-    severity: SnackbarSeverity;
-    onClose: () => void;
-}
+import { useNotification } from '../contexts';
 
 export interface UseFileAttachmentsReturn {
     attachedFiles: AttachedFile[];
@@ -24,8 +16,6 @@ export interface UseFileAttachmentsReturn {
     hasUploadingFiles: boolean;
     hasFailedFiles: boolean;
     totalFiles: number;
-    showError: (message: string, severity?: SnackbarSeverity) => void;
-    snackbar: SnackbarState;
 }
 
 /**
@@ -33,21 +23,7 @@ export interface UseFileAttachmentsReturn {
  */
 export const useFileAttachments = (): UseFileAttachmentsReturn => {
     const [attachedFiles, setAttachedFiles] = useState<AttachedFile[]>([]);
-    const [snackbarOpen, setSnackbarOpen] = useState(false);
-    const [snackbarMessage, setSnackbarMessage] = useState('');
-    const [snackbarSeverity, setSnackbarSeverity] = useState<SnackbarSeverity>('error');
-
-    // Show error/info message in snackbar
-    const showError = useCallback((message: string, severity: SnackbarSeverity = 'error') => {
-        setSnackbarMessage(message);
-        setSnackbarSeverity(severity);
-        setSnackbarOpen(true);
-    }, []);
-
-    // Close snackbar
-    const handleSnackbarClose = useCallback(() => {
-        setSnackbarOpen(false);
-    }, []);
+    const { showNotification } = useNotification();
 
     // Helper function to create AttachedFile from File
     const createAttachedFile = async (file: File): Promise<AttachedFile> => {
@@ -136,9 +112,9 @@ export const useFileAttachments = (): UseFileAttachmentsReturn => {
         // Show errors if any
         if (errors.length > 0) {
             console.error('File validation errors:', errors);
-            errors.forEach(error => showError(error));
+            errors.forEach(error => showNotification(error, 'error'));
         }
-    }, [attachedFiles.length, updateFileProgress, markFileSuccess, markFileError, showError]);
+    }, [attachedFiles.length, updateFileProgress, markFileSuccess, markFileError, showNotification]);
 
     // Remove a file by ID
     const removeFile = useCallback((fileId: string) => {
@@ -163,12 +139,5 @@ export const useFileAttachments = (): UseFileAttachmentsReturn => {
         hasUploadingFiles,
         hasFailedFiles,
         totalFiles,
-        showError,
-        snackbar: {
-            open: snackbarOpen,
-            message: snackbarMessage,
-            severity: snackbarSeverity,
-            onClose: handleSnackbarClose,
-        },
     };
 };

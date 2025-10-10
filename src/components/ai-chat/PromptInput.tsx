@@ -8,20 +8,23 @@ import {
     Typography,
     Chip,
     useTheme,
-    Snackbar,
-    Alert,
 } from '@mui/material';
 import {
     PaperclipIcon,
     ArrowUpIcon,
 } from '@phosphor-icons/react';
 import { useMachine } from '@xstate/react';
+import type { ActorRefFrom } from 'xstate';
 import { FileAttachmentsBar } from './FileAttachmentsBar';
 import { promptInputMachine } from './promptInputMachine';
 import type { PromptInputProps, SuggestionChip } from './types';
 import { FILE_UPLOAD_CONSTANTS } from './types';
 import { fileListToArray } from './fileUploadUtils';
 import { useTextareaIsMultiline, useFileAttachments } from '../../hooks';
+import type { SnapshotFrom } from 'xstate';
+
+type PromptInputSnapshot = SnapshotFrom<typeof promptInputMachine>;
+type PromptInputSend = ActorRefFrom<typeof promptInputMachine>['send'];
 
 
 // Reusable send button component to avoid duplication
@@ -61,31 +64,34 @@ const FileAttachmentButton = React.memo<{
 });
 FileAttachmentButton.displayName = 'FileAttachmentButton';
 
-// Main input row component (used by both modes)
-const InputRow = React.memo<{
-    state: any;
-    send: any;
+// Props interfaces for better organization
+interface InputFieldHandlers {
+    onChange: (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+    onKeyPress: (event: React.KeyboardEvent) => void;
+    onAddFiles: () => void;
+    onSend: () => void;
+}
+
+interface InputRowProps {
+    state: PromptInputSnapshot;
+    send: PromptInputSend;
     placeholder: string;
-    handleInputChange: (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
-    handleKeyPress: (event: React.KeyboardEvent) => void;
-    handleAddFilesClick: () => void;
+    handlers: InputFieldHandlers;
     textFieldRef: React.RefObject<HTMLDivElement | null>;
     disabled: boolean;
-    canSend: () => boolean;
-    handleSend: () => void;
-    theme: any;
+    canSendMessage: boolean;
     showCompactLayout: boolean;
-}>(({
+}
+
+// Main input row component
+const InputRow = React.memo<InputRowProps>(({
     state,
     send,
     placeholder,
-    handleInputChange,
-    handleKeyPress,
-    handleAddFilesClick,
+    handlers,
     textFieldRef,
     disabled,
-    canSend,
-    handleSend,
+    canSendMessage,
     showCompactLayout,
 }) => {
     const { ref: textareaRef, isMultiline } = useTextareaIsMultiline<HTMLTextAreaElement>();
@@ -101,7 +107,7 @@ const InputRow = React.memo<{
         }}>
             {/* File attachment button for horizontal layout */}
             {showCompactLayout && !shouldUseVerticalLayout && (
-                <FileAttachmentButton onClick={handleAddFilesClick} />
+                <FileAttachmentButton onClick={handlers.onAddFiles} />
             )}
 
             {/* Text Field - always present, same component */}
@@ -111,20 +117,18 @@ const InputRow = React.memo<{
                 fullWidth
                 multiline
                 maxRows={6}
-                // minRows={shouldUseVerticalLayout ? 2 : 1}
                 placeholder={placeholder}
                 value={state.context.value}
-                onChange={handleInputChange}
-                onKeyDown={handleKeyPress}
+                onChange={handlers.onChange}
+                onKeyDown={handlers.onKeyPress}
                 onFocus={() => send({ type: 'FOCUS' })}
                 onBlur={() => send({ type: 'BLUR' })}
                 disabled={disabled}
-
             />
 
             {/* Send button for horizontal layout */}
             {showCompactLayout && !shouldUseVerticalLayout && (
-                <SendButton onClick={handleSend} disabled={!canSend()} color="primary" />
+                <SendButton onClick={handlers.onSend} disabled={!canSendMessage} color="primary" />
             )}
 
             {/* Buttons Container for vertical layout only */}
@@ -136,8 +140,8 @@ const InputRow = React.memo<{
                     width: '100%',
                     transition: 'all 0.3s ease-in-out',
                 }}>
-                    <FileAttachmentButton onClick={handleAddFilesClick} />
-                    <SendButton onClick={handleSend} disabled={!canSend()} color="primary" />
+                    <FileAttachmentButton onClick={handlers.onAddFiles} />
+                    <SendButton onClick={handlers.onSend} disabled={!canSendMessage} color="primary" />
                 </Box>
             )}
         </Box>
@@ -145,21 +149,24 @@ const InputRow = React.memo<{
 });
 InputRow.displayName = 'InputRow';
 
-// Suggestions footer - shows suggestion chips and controls
-const SuggestionsFooter = React.memo<{
+// Suggestions footer props interface
+interface SuggestionsFooterProps {
     suggestions: SuggestionChip[];
     activeChipId: string | null;
-    handleAddFilesClick: () => void;
-    handleSuggestionClick: (chipId: string) => void;
-    canSend: () => boolean;
-    handleSend: () => void;
-}>(({
+    onAddFiles: () => void;
+    onSuggestionClick: (chipId: string) => void;
+    canSendMessage: boolean;
+    onSend: () => void;
+}
+
+// Suggestions footer - shows suggestion chips and controls
+const SuggestionsFooter = React.memo<SuggestionsFooterProps>(({
     suggestions,
     activeChipId,
-    handleAddFilesClick,
-    handleSuggestionClick,
-    canSend,
-    handleSend
+    onAddFiles,
+    onSuggestionClick,
+    canSendMessage,
+    onSend
 }) => {
     return (
         <Box sx={{
@@ -177,7 +184,7 @@ const SuggestionsFooter = React.memo<{
                 flexWrap: 'wrap',
                 alignItems: 'center'
             }}>
-                <FileAttachmentButton onClick={handleAddFilesClick} />
+                <FileAttachmentButton onClick={onAddFiles} />
 
                 {/* Suggestion chips */}
                 {suggestions.map((suggestion) => {
@@ -189,14 +196,14 @@ const SuggestionsFooter = React.memo<{
                             icon={suggestion.icon}
                             variant={isActive ? "selected" : "outlined"}
                             size="small"
-                            onClick={() => handleSuggestionClick(suggestion.id)}
+                            onClick={() => onSuggestionClick(suggestion.id)}
                         />
                     );
                 })}
             </Box>
 
             {/* Right side: Send Button */}
-            <SendButton onClick={handleSend} disabled={!canSend()} color="primary" />
+            <SendButton onClick={onSend} disabled={!canSendMessage} color="primary" />
         </Box>
     );
 });
@@ -227,7 +234,6 @@ export const PromptInput: React.FC<PromptInputProps> = ({
         removeFile,
         hasUploadingFiles,
         hasFailedFiles,
-        snackbar,
     } = useFileAttachments();
 
     // Initialize the state machine
@@ -287,6 +293,8 @@ export const PromptInput: React.FC<PromptInputProps> = ({
         return hasText && !hasUploadingFiles && !hasFailedFiles && !disabled;
     }, [state.context.value, hasUploadingFiles, hasFailedFiles, disabled]);
 
+    const canSendMessage = canSend();
+
     const handleSend = React.useCallback(() => {
         if (!canSend()) {
             return;
@@ -294,24 +302,25 @@ export const PromptInput: React.FC<PromptInputProps> = ({
 
         send({ type: 'SEND' });
         onSend();
-
-        // Simulate async operation - in real app this would be handled by the parent
-        setTimeout(() => {
-            send({ type: 'SEND_SUCCESS' });
-        }, 100);
     }, [canSend, send, onSend]);
+
+    // Simulate async send success - in real app this would be handled by the parent
+    React.useEffect(() => {
+        if (state.matches('sending')) {
+            const timeoutId = setTimeout(() => {
+                send({ type: 'SEND_SUCCESS' });
+            }, 100);
+
+            return () => clearTimeout(timeoutId);
+        }
+    }, [state, send]);
 
     const handleSuggestionClick = React.useCallback((chipId: string) => {
         send({ type: 'SELECT_CHIP', chipId });
+
         // Focus the input after clicking a suggestion
-        setTimeout(() => {
-            if (textFieldRef.current) {
-                const input = textFieldRef.current.querySelector('textarea, input');
-                if (input) {
-                    (input as HTMLElement).focus();
-                }
-            }
-        }, 0);
+        const input = textFieldRef.current?.querySelector<HTMLTextAreaElement | HTMLInputElement>('textarea, input');
+        input?.focus();
     }, [send]);
 
     const handleKeyPress = React.useCallback((event: React.KeyboardEvent) => {
@@ -347,9 +356,7 @@ export const PromptInput: React.FC<PromptInputProps> = ({
                 elevation={0}
                 onMouseEnter={() => send({ type: 'HOVER' })}
                 onMouseLeave={() => send({ type: 'UNHOVER' })}
-                /* drag & drop handlers removed - keep file input for attachments */
                 sx={{
-                    // backgroundColor: getBackgroundColor(),
                     borderRadius: 8, // 24px based on cornerRadius-4
                     border: `1px solid ${getBorderColor()}`,
                     overflow: 'hidden',
@@ -358,7 +365,6 @@ export const PromptInput: React.FC<PromptInputProps> = ({
                     '&:hover': {
                         borderColor: !isFocused ? theme.vars.palette.primary.light : theme.vars.palette.primary.main,
                     },
-                    /* drag styling removed */
                 }}
             >
                 <Box sx={{ p: 2 }}>
@@ -373,14 +379,15 @@ export const PromptInput: React.FC<PromptInputProps> = ({
                         state={state}
                         send={send}
                         placeholder={placeholder}
-                        handleInputChange={handleInputChange}
-                        handleKeyPress={handleKeyPress}
-                        handleAddFilesClick={handleAddFilesClick}
+                        handlers={{
+                            onChange: handleInputChange,
+                            onKeyPress: handleKeyPress,
+                            onAddFiles: handleAddFilesClick,
+                            onSend: handleSend,
+                        }}
                         textFieldRef={textFieldRef}
                         disabled={disabled}
-                        canSend={canSend}
-                        handleSend={handleSend}
-                        theme={theme}
+                        canSendMessage={canSendMessage}
                         showCompactLayout={!hasSuggestions}
                     />
 
@@ -390,10 +397,10 @@ export const PromptInput: React.FC<PromptInputProps> = ({
                         <SuggestionsFooter
                             suggestions={suggestions}
                             activeChipId={state.context.activeChipId}
-                            handleAddFilesClick={handleAddFilesClick}
-                            handleSuggestionClick={handleSuggestionClick}
-                            canSend={canSend}
-                            handleSend={handleSend}
+                            onAddFiles={handleAddFilesClick}
+                            onSuggestionClick={handleSuggestionClick}
+                            canSendMessage={canSendMessage}
+                            onSend={handleSend}
                         />
                     )}
                 </Box>
@@ -414,23 +421,6 @@ export const PromptInput: React.FC<PromptInputProps> = ({
                     {state.context.helperText}
                 </Typography>
             )}
-
-            {/* Snackbar for error notifications */}
-            <Snackbar
-                open={snackbar.open}
-                autoHideDuration={6000}
-                onClose={snackbar.onClose}
-                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-            >
-                <Alert
-                    onClose={snackbar.onClose}
-                    severity={snackbar.severity}
-                    variant="filled"
-                    sx={{ width: '100%' }}
-                >
-                    {snackbar.message}
-                </Alert>
-            </Snackbar>
         </Box>
     );
 };
