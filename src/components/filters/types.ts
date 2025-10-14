@@ -40,8 +40,8 @@ export interface FilterDefinition {
 
 export interface ActiveFilter {
     id: string; // Unique instance ID
-    filterId: string; // Reference to FilterDefinition
-    operator: OperatorType;
+    filterId?: string; // Reference to FilterDefinition - optional for empty filters
+    operator?: OperatorType; // Optional for empty filters
     value: string | string[]; // string for text/single-select, string[] for multi-select
     enabled: boolean;
     linkedFilterId?: string; // Reference to linked ActiveFilter ID if this has a linked filter

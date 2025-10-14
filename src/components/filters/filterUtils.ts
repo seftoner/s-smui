@@ -4,19 +4,21 @@ import type { ActiveFilter } from './types';
  * Calculates whether filters can be applied based on their enabled state and values.
  * 
  * @param filters - Array of active filters to validate
- * @returns true if at least one filter is enabled
+ * @returns true if at least one filter is enabled and has a filter type
  */
 export const calculateCanApply = (filters: ActiveFilter[]): boolean => {
-    return filters.some(filter => filter.enabled);
+    return filters.some(filter => filter.enabled && filter.filterId);
 };
 
 /**
  * Validates if a single filter has a valid value
  * 
  * @param filter - The filter to validate
- * @returns true if the filter has a valid value
+ * @returns true if the filter has a valid value and filter type
  */
 export const isFilterValid = (filter: ActiveFilter): boolean => {
+    if (!filter.filterId) return false; // Empty filter is not valid
+    
     if (Array.isArray(filter.value)) {
         return filter.value.length > 0;
     }

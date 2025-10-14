@@ -44,13 +44,11 @@ export const FilterInput: React.FC<FilterInputProps> = ({
     const [operatorAnchor, setOperatorAnchor] = useState<null | HTMLElement>(null);
     const [valueAnchor, setValueAnchor] = useState<null | HTMLElement>(null);
 
-    const filterDef = getFilterDefinition(filter.filterId);
+    const filterDef = filter.filterId ? getFilterDefinition(filter.filterId) : null;
+    const isEmptyFilter = !filter.filterId;
 
-    if (!filterDef) {
-        return null;
-    }
-
-    const currentOperator = filterDef.operators.find(op => op.id === filter.operator);
+    // For empty filters, we still need to render something
+    const currentOperator = filterDef?.operators.find(op => op.id === filter.operator);
 
     // Handle filter name change
     const handleFilterNameClick = (event: React.MouseEvent<HTMLElement>) => {
@@ -89,7 +87,9 @@ export const FilterInput: React.FC<FilterInputProps> = ({
         };
 
         if (onFilterTypeChange) {
-            onFilterTypeChange(filter.filterId, newFilterId);
+            // For empty filters, use empty string as oldFilterId
+            const oldFilterId = filter.filterId || '';
+            onFilterTypeChange(oldFilterId, newFilterId);
         }
 
         // Update the filter - the linkedFilterId will be handled separately
@@ -99,7 +99,7 @@ export const FilterInput: React.FC<FilterInputProps> = ({
 
     // Handle operator change
     const handleOperatorClick = (event: React.MouseEvent<HTMLElement>) => {
-        if (!filter.enabled || !isLinkedEnabled) return;
+        if (!filter.enabled || !isLinkedEnabled || isEmptyFilter) return;
         setOperatorAnchor(event.currentTarget);
         setIsHovered(false);
     };
@@ -120,8 +120,8 @@ export const FilterInput: React.FC<FilterInputProps> = ({
     // Handle value change
     const handleValueClick = (event: React.MouseEvent<HTMLElement>) => {
         // Only show menu for select types, not for text
-        if (!filter.enabled || !isLinkedEnabled) return;
-        if (filterDef.valueType !== 'text') {
+        if (!filter.enabled || !isLinkedEnabled || isEmptyFilter) return;
+        if (filterDef?.valueType !== 'text') {
             setValueAnchor(event.currentTarget);
         }
     };
@@ -167,6 +167,8 @@ export const FilterInput: React.FC<FilterInputProps> = ({
 
     // Get display value
     const getDisplayValue = (): string => {
+        if (!filterDef) return 'Value';
+
         if (filterDef.valueType === 'text') {
             return filter.value as string || 'Enter value...';
         }
@@ -235,8 +237,13 @@ export const FilterInput: React.FC<FilterInputProps> = ({
                     }}
                 >
                     <Box sx={{ display: 'flex', gap: 1 }}>
-                        <Typography variant="body1">
-                            {filterDef.name}
+                        <Typography
+                            variant="body1"
+                            sx={{
+                                color: isEmptyFilter ? 'text.disabled' : 'text.primary'
+                            }}
+                        >
+                            {isEmptyFilter ? 'Select filter type' : filterDef?.name}
                         </Typography>
                     </Box>
                     <Icon
@@ -265,7 +272,7 @@ export const FilterInput: React.FC<FilterInputProps> = ({
 
                     {/* Operator Section */}
                     <Box
-                        onClick={filter.enabled && isLinkedEnabled ? handleOperatorClick : undefined}
+                        onClick={filter.enabled && isLinkedEnabled && !isEmptyFilter ? handleOperatorClick : undefined}
                         sx={{
                             display: 'flex',
                             alignItems: 'center',
@@ -273,30 +280,32 @@ export const FilterInput: React.FC<FilterInputProps> = ({
                             flex: 1,
                             px: 2,
                             py: 1,
-                            cursor: (filter.enabled && isLinkedEnabled) ? 'pointer' : 'default',
-                            '&:hover': (filter.enabled && isLinkedEnabled) ? {
+                            cursor: (filter.enabled && isLinkedEnabled && !isEmptyFilter) ? 'pointer' : 'default',
+                            '&:hover': (filter.enabled && isLinkedEnabled && !isEmptyFilter) ? {
                                 bgcolor: 'action.hover',
                             } : {},
                         }}
                     >
                         <Chip
-                            label={currentOperator?.label || ''}
+                            label={isEmptyFilter ? 'Operator' : (currentOperator?.label || '')}
                             size="small"
-                            color={currentOperator?.color || 'default'}
+                            color={isEmptyFilter ? 'default' : (currentOperator?.color || 'default')}
                             sx={{
                                 fontWeight: 400,
                                 height: 24,
+                                opacity: isEmptyFilter ? 0.5 : 1,
                                 '& .MuiChip-label': {
                                     fontSize: '13px',
                                     lineHeight: '18px',
                                     px: 1,
+                                    color: isEmptyFilter ? 'text.disabled' : 'inherit',
                                 },
                             }}
                         />
                         <Icon
                             fontSize='small'
                             sx={{
-                                color: 'action.active',
+                                color: isEmptyFilter ? 'action.disabled' : 'action.active',
                                 display: 'flex',
                                 alignItems: 'center',
                             }}
@@ -310,7 +319,24 @@ export const FilterInput: React.FC<FilterInputProps> = ({
 
 
                     {/* Value Section */}
-                    {filterDef.valueType === 'text' ? (
+                    {isEmptyFilter ? (
+                        // Empty filter placeholder
+                        <Box
+                            sx={{
+                                flex: 1.6,
+                                display: 'flex',
+                                alignItems: 'center',
+                                px: 2,
+                                py: 1,
+                                color: 'text.disabled',
+                                fontStyle: 'italic',
+                            }}
+                        >
+                            <Typography variant="body2" sx={{ color: 'text.disabled' }}>
+                                Value
+                            </Typography>
+                        </Box>
+                    ) : filterDef?.valueType === 'text' ? (
                         // Text input directly in the value section
                         <Box
                             sx={{
@@ -440,7 +466,7 @@ export const FilterInput: React.FC<FilterInputProps> = ({
                 open={Boolean(operatorAnchor)}
                 onClose={handleOperatorClose}
             >
-                {filterDef.operators.map((operator) => (
+                {filterDef?.operators.map((operator) => (
                     <MenuItem
                         key={operator.id}
                         onClick={() => handleOperatorSelect(operator)}
@@ -457,7 +483,7 @@ export const FilterInput: React.FC<FilterInputProps> = ({
             </Menu>
 
             {/* Value Menu/Input */}
-            {filterDef.valueType === 'text' && (
+            {filterDef?.valueType === 'text' && (
                 <Menu
                     anchorEl={valueAnchor}
                     open={Boolean(valueAnchor)}
@@ -467,7 +493,7 @@ export const FilterInput: React.FC<FilterInputProps> = ({
                         <TextField
                             fullWidth
                             size="small"
-                            placeholder={filterDef.placeholder}
+                            placeholder={filterDef?.placeholder}
                             value={filter.value as string}
                             onChange={handleTextValueChange}
                             autoFocus
@@ -487,13 +513,13 @@ export const FilterInput: React.FC<FilterInputProps> = ({
                 </Menu>
             )}
 
-            {filterDef.valueType === 'single-select' && (
+            {filterDef?.valueType === 'single-select' && (
                 <Menu
                     anchorEl={valueAnchor}
                     open={Boolean(valueAnchor)}
                     onClose={handleValueClose}
                 >
-                    {filterDef.options?.map((option) => (
+                    {filterDef?.options?.map((option) => (
                         <MenuItem
                             key={option.id}
                             onClick={() => handleSingleSelectChange(option.id)}
@@ -505,13 +531,13 @@ export const FilterInput: React.FC<FilterInputProps> = ({
                 </Menu>
             )}
 
-            {filterDef.valueType === 'multi-select' && (
+            {filterDef?.valueType === 'multi-select' && (
                 <Menu
                     anchorEl={valueAnchor}
                     open={Boolean(valueAnchor)}
                     onClose={handleValueClose}
                 >
-                    {filterDef.options?.map((option) => {
+                    {filterDef?.options?.map((option) => {
                         const values = Array.isArray(filter.value) ? filter.value : [];
                         const isChecked = values.includes(option.id);
 

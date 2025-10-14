@@ -8,7 +8,7 @@ interface FilterEmptyStateProps {
 
 export const FilterEmptyState: React.FC<FilterEmptyStateProps> = ({
     title = "No filters added yet",
-    subtitle = "Add filters to refine your search results"
+    subtitle
 }) => {
     return (
         <Box
@@ -17,34 +17,25 @@ export const FilterEmptyState: React.FC<FilterEmptyStateProps> = ({
                 flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                flex: 1,
-                px: 3,
-                py: 4,
                 textAlign: 'center',
             }}
         >
             <Typography
                 variant="body2"
-                sx={{
-                    color: 'text.secondary',
-                    mb: 1,
-                    fontSize: '14px',
-                    fontWeight: 400,
-                }}
+                color="text.secondary"
+                sx={{ mb: subtitle ? 1 : 0 }}
             >
                 {title}
             </Typography>
-            <Typography
-                variant="caption"
-                sx={{
-                    color: 'text.disabled',
-                    fontSize: '12px',
-                    maxWidth: 200,
-                    lineHeight: 1.4,
-                }}
-            >
-                {subtitle}
-            </Typography>
+            {subtitle && (
+                <Typography
+                    variant="caption"
+                    color="text.disabled"
+                    sx={{ maxWidth: 200, lineHeight: 1.4 }}
+                >
+                    {subtitle}
+                </Typography>
+            )}
         </Box>
     );
 };

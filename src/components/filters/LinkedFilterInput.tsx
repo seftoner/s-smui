@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box, Icon } from '@mui/material';
-import { LinkSimple } from '@phosphor-icons/react';
+import { LinkSimpleIcon } from '@phosphor-icons/react';
 import { FilterInput } from './FilterInput';
 import type { ActiveFilter, FilterDefinition } from './types';
 import { getFilterDefinition } from './filterConfigService';
@@ -26,8 +26,8 @@ export const LinkedFilterInput: React.FC<LinkedFilterInputProps> = ({
     onTogglePrimaryEnabled,
     onFilterTypeChange,
 }) => {
-    const primaryFilterDef = getFilterDefinition(primaryFilter.filterId);
-    const linkedFilterDef = getFilterDefinition(linkedFilter.filterId);
+    const primaryFilterDef = getFilterDefinition(primaryFilter.filterId!);
+    const linkedFilterDef = getFilterDefinition(linkedFilter.filterId!);
 
     if (!primaryFilterDef || !linkedFilterDef) {
         return null;
@@ -92,7 +92,7 @@ export const LinkedFilterInput: React.FC<LinkedFilterInputProps> = ({
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    py: 0.5,
+                    py: 1,
                 }}
             >
                 <Icon
@@ -103,7 +103,7 @@ export const LinkedFilterInput: React.FC<LinkedFilterInputProps> = ({
                         transition: 'color 0.2s',
                     }}
                 >
-                    <LinkSimple size={20} weight="bold" />
+                    <LinkSimpleIcon size={20} weight="bold" />
                 </Icon>
             </Box>
 
