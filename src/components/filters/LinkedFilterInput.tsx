@@ -1,6 +1,5 @@
 import React from 'react';
-import { Box, Icon } from '@mui/material';
-import { LinkSimpleIcon } from '@phosphor-icons/react';
+import { Box } from '@mui/material';
 import { FilterInput } from './FilterInput';
 import type { ActiveFilter, FilterDefinition } from './types';
 import { getFilterDefinition } from './filterConfigService';
@@ -72,7 +71,6 @@ export const LinkedFilterInput: React.FC<LinkedFilterInputProps> = ({
             sx={{
                 display: 'flex',
                 flexDirection: 'column',
-                gap: 1,
                 width: '100%',
             }}
         >
@@ -86,45 +84,43 @@ export const LinkedFilterInput: React.FC<LinkedFilterInputProps> = ({
                 onFilterTypeChange={onFilterTypeChange}
             />
 
-            {/* Chain Icon */}
+            {/* Linked Filter with Tree Branch */}
             <Box
                 sx={{
                     display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    py: 1,
+                    mt: 4,
                 }}
             >
-                <Icon
+                {/* Tree Branch Line */}
+                <Box
                     sx={{
-                        color: isLinkedFilterEnabled ? 'primary.main' : 'action.disabled',
-                        display: 'flex',
-                        alignItems: 'center',
-                        transition: 'color 0.2s',
+                        width: 18,
+                        height: 32,
+                        flexShrink: 0,
+                        mr: 2,
+                        borderBottom: '1px solid',
+                        borderLeft: '1px solid',
+                        borderColor: 'divider',
+                        borderRadius: '0 0 0 8px',
+                        mt: '-4px',
                     }}
-                >
-                    <LinkSimpleIcon size={20} weight="bold" />
-                </Icon>
-            </Box>
-
-            {/* Linked Filter */}
-            <Box
-                sx={{
-                    pl: 4, // Indent linked filter
-                }}
-            >
-                <FilterInput
-                    filter={{
-                        ...linkedFilter,
-                        enabled: isLinkedFilterEnabled,
-                    }}
-                    availableFilters={[modifiedLinkedFilterDef]}
-                    onChange={onLinkedChange}
-                    onDelete={() => { }} // Linked filter cannot be deleted independently
-                    onToggleEnabled={() => { }} // Linked filter cannot be toggled independently
-                    isLinked={true}
-                    isLinkedEnabled={isLinkedFilterEnabled}
                 />
+
+                {/* Linked Filter */}
+                <Box sx={{ flex: 1 }}>
+                    <FilterInput
+                        filter={{
+                            ...linkedFilter,
+                            enabled: isLinkedFilterEnabled,
+                        }}
+                        availableFilters={[modifiedLinkedFilterDef]}
+                        onChange={onLinkedChange}
+                        onDelete={() => { }} // Linked filter cannot be deleted independently
+                        onToggleEnabled={() => { }} // Linked filter cannot be toggled independently
+                        isLinked={true}
+                        isLinkedEnabled={isLinkedFilterEnabled}
+                    />
+                </Box>
             </Box>
         </Box>
     );
