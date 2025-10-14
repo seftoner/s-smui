@@ -42,3 +42,55 @@ export const getEnabledFiltersCount = (filters: ActiveFilter[]): number => {
 export const getValidFiltersCount = (filters: ActiveFilter[]): number => {
     return filters.filter(f => f.enabled && isFilterValid(f)).length;
 };
+
+/**
+ * Checks if a filter is a linked (child) filter
+ * 
+ * @param filter - The filter to check
+ * @param allFilters - All filters in the current state
+ * @returns true if this filter is linked to another filter
+ */
+export const isLinkedFilter = (filter: ActiveFilter, allFilters: ActiveFilter[]): boolean => {
+    return allFilters.some(f => f.linkedFilterId === filter.id);
+};
+
+/**
+ * Gets the linked filter for a primary filter
+ * 
+ * @param primaryFilter - The primary filter
+ * @param allFilters - All filters in the current state
+ * @returns The linked filter if it exists, undefined otherwise
+ */
+export const getLinkedFilter = (
+    primaryFilter: ActiveFilter,
+    allFilters: ActiveFilter[]
+): ActiveFilter | undefined => {
+    if (!primaryFilter.linkedFilterId) return undefined;
+    return allFilters.find(f => f.id === primaryFilter.linkedFilterId);
+};
+
+/**
+ * Gets all primary filters (filters that are not linked to another filter)
+ * 
+ * @param filters - All filters in the current state
+ * @returns Array of primary filters
+ */
+export const getPrimaryFilters = (filters: ActiveFilter[]): ActiveFilter[] => {
+    return filters.filter(filter => !isLinkedFilter(filter, filters));
+};
+
+/**
+ * Gets all filter groups (primary filters with their linked filters)
+ * 
+ * @param filters - All filters in the current state
+ * @returns Array of filter groups
+ */
+export const getFilterGroups = (filters: ActiveFilter[]): Array<{
+    primary: ActiveFilter;
+    linked?: ActiveFilter;
+}> => {
+    return getPrimaryFilters(filters).map(primary => ({
+        primary,
+        linked: getLinkedFilter(primary, filters),
+    }));
+};

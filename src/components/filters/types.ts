@@ -23,6 +23,11 @@ export interface FilterOption {
     label: string;
 }
 
+export interface LinkedFilterDefinition {
+    filterId: string; // The linked filter definition ID
+    parentValueMap: Record<string, string[]>; // Maps parent value to available child options
+}
+
 export interface FilterDefinition {
     id: string;
     name: string;
@@ -30,6 +35,7 @@ export interface FilterDefinition {
     operators: OperatorConfig[];
     options?: FilterOption[]; // For single-select and multi-select
     placeholder?: string; // For text input
+    linkedFilter?: LinkedFilterDefinition; // Optional linked filter
 }
 
 export interface ActiveFilter {
@@ -38,6 +44,13 @@ export interface ActiveFilter {
     operator: OperatorType;
     value: string | string[]; // string for text/single-select, string[] for multi-select
     enabled: boolean;
+    linkedFilterId?: string; // Reference to linked ActiveFilter ID if this has a linked filter
+}
+
+export interface ActiveLinkedFilterGroup {
+    id: string; // Group ID
+    primaryFilter: ActiveFilter;
+    linkedFilter: ActiveFilter;
 }
 
 export interface FilterState {

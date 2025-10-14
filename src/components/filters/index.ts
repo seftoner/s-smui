@@ -1,4 +1,5 @@
 export { FilterInput } from './FilterInput';
+export { LinkedFilterInput } from './LinkedFilterInput';
 export { FilterBar } from './FilterBar';
 export { FilterOperator } from './FilterOperator';
 export { FilterEmptyState } from './FilterEmptyState';

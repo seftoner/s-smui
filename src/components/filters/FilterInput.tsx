@@ -23,6 +23,9 @@ interface FilterInputProps {
     onChange: (filter: ActiveFilter) => void;
     onDelete: () => void;
     onToggleEnabled: () => void;
+    onFilterTypeChange?: (oldFilterId: string, newFilterId: string) => void; // Notify parent of filter type change
+    isLinked?: boolean; // Is this a linked (child) filter?
+    isLinkedEnabled?: boolean; // Is the parent filter enabled with a value?
 }
 
 export const FilterInput: React.FC<FilterInputProps> = ({
@@ -31,6 +34,9 @@ export const FilterInput: React.FC<FilterInputProps> = ({
     onChange,
     onDelete,
     onToggleEnabled,
+    onFilterTypeChange,
+    isLinked = false,
+    isLinkedEnabled = true,
 }) => {
     const [isHovered, setIsHovered] = useState(false);
     const [isToggleVisible, setIsToggleVisible] = useState(false);
@@ -48,6 +54,8 @@ export const FilterInput: React.FC<FilterInputProps> = ({
 
     // Handle filter name change
     const handleFilterNameClick = (event: React.MouseEvent<HTMLElement>) => {
+        // Don't allow changing filter name for linked filters or if not enabled
+        if (isLinked || !filter.enabled || !isLinkedEnabled) return;
         setFilterNameAnchor(event.currentTarget);
         setIsHovered(false);
     };
@@ -70,17 +78,28 @@ export const FilterInput: React.FC<FilterInputProps> = ({
 
         setIsHovered(false);
 
-        onChange({
+        // Notify parent about filter type change FIRST
+        // Parent will handle linked filter creation/deletion
+        // and return the new linkedFilterId if needed
+        const updatedFilter: ActiveFilter = {
             ...filter,
             filterId: newFilterId,
             operator: defaultOperator.id,
             value: defaultValue,
-        });
+        };
+
+        if (onFilterTypeChange) {
+            onFilterTypeChange(filter.filterId, newFilterId);
+        }
+
+        // Update the filter - the linkedFilterId will be handled separately
+        onChange(updatedFilter);
         handleFilterNameClose();
     };
 
     // Handle operator change
     const handleOperatorClick = (event: React.MouseEvent<HTMLElement>) => {
+        if (!filter.enabled || !isLinkedEnabled) return;
         setOperatorAnchor(event.currentTarget);
         setIsHovered(false);
     };
@@ -101,6 +120,7 @@ export const FilterInput: React.FC<FilterInputProps> = ({
     // Handle value change
     const handleValueClick = (event: React.MouseEvent<HTMLElement>) => {
         // Only show menu for select types, not for text
+        if (!filter.enabled || !isLinkedEnabled) return;
         if (filterDef.valueType !== 'text') {
             setValueAnchor(event.currentTarget);
         }
@@ -189,7 +209,7 @@ export const FilterInput: React.FC<FilterInputProps> = ({
                     borderRadius: 3,
                     border: '1px solid',
                     borderColor: 'divider',
-                    opacity: filter.enabled ? 1 : 0.5,
+                    opacity: (filter.enabled && isLinkedEnabled) ? 1 : 0.5,
                     transition: 'all 0.2s',
                     overflow: 'hidden',
                     boxShadow: '0px 1px 2px 0px rgba(65, 50, 42, 0.08)',
@@ -200,7 +220,7 @@ export const FilterInput: React.FC<FilterInputProps> = ({
             >
                 {/* Filter Name Row */}
                 <Box
-                    onClick={filter.enabled ? handleFilterNameClick : undefined}
+                    onClick={filter.enabled && isLinkedEnabled && !isLinked ? handleFilterNameClick : undefined}
                     sx={{
                         minHeight: 44,
                         display: 'flex',
@@ -208,8 +228,8 @@ export const FilterInput: React.FC<FilterInputProps> = ({
                         justifyContent: 'space-between',
                         px: 2,
                         py: 1,
-                        cursor: filter.enabled ? 'pointer' : 'default',
-                        '&:hover': filter.enabled ? {
+                        cursor: (filter.enabled && isLinkedEnabled && !isLinked) ? 'pointer' : 'default',
+                        '&:hover': (filter.enabled && isLinkedEnabled && !isLinked) ? {
                             bgcolor: 'action.hover',
                         } : {},
                     }}
@@ -245,7 +265,7 @@ export const FilterInput: React.FC<FilterInputProps> = ({
 
                     {/* Operator Section */}
                     <Box
-                        onClick={filter.enabled ? handleOperatorClick : undefined}
+                        onClick={filter.enabled && isLinkedEnabled ? handleOperatorClick : undefined}
                         sx={{
                             display: 'flex',
                             alignItems: 'center',
@@ -253,8 +273,8 @@ export const FilterInput: React.FC<FilterInputProps> = ({
                             flex: 1,
                             px: 2,
                             py: 1,
-                            cursor: filter.enabled ? 'pointer' : 'default',
-                            '&:hover': filter.enabled ? {
+                            cursor: (filter.enabled && isLinkedEnabled) ? 'pointer' : 'default',
+                            '&:hover': (filter.enabled && isLinkedEnabled) ? {
                                 bgcolor: 'action.hover',
                             } : {},
                         }}
@@ -311,7 +331,7 @@ export const FilterInput: React.FC<FilterInputProps> = ({
                                 placeholder={filterDef.placeholder || 'Enter value...'}
                                 value={filter.value as string}
                                 onChange={handleTextValueChange}
-                                disabled={!filter.enabled}
+                                disabled={!filter.enabled || !isLinkedEnabled}
                                 autoComplete="off"
                                 slotProps={{
                                     input: {
@@ -323,7 +343,7 @@ export const FilterInput: React.FC<FilterInputProps> = ({
                     ) : (
                         // Clickable area for select types
                         <Box
-                            onClick={filter.enabled ? handleValueClick : undefined}
+                            onClick={filter.enabled && isLinkedEnabled ? handleValueClick : undefined}
                             sx={{
                                 flex: 1.6,
                                 display: 'flex',
@@ -331,8 +351,8 @@ export const FilterInput: React.FC<FilterInputProps> = ({
                                 justifyContent: 'space-between',
                                 px: 2,
                                 py: 1,
-                                cursor: filter.enabled ? 'pointer' : 'default',
-                                '&:hover': filter.enabled ? {
+                                cursor: (filter.enabled && isLinkedEnabled) ? 'pointer' : 'default',
+                                '&:hover': (filter.enabled && isLinkedEnabled) ? {
                                     bgcolor: 'action.hover',
                                 } : {},
                             }}
@@ -356,43 +376,46 @@ export const FilterInput: React.FC<FilterInputProps> = ({
             </Paper>
 
             {/* Reserved Action Space - Always present to prevent layout shift */}
-            <Box
-                sx={{
-                    display: 'flex',
-                    gap: 1,
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    // width: 80, // Fixed width to reserve space
-                    justifyContent: 'flex-end',
-                }}
-            >
-                <Tooltip title={filter.enabled ? 'Disable filter' : 'Enable filter'} placement='left'>
-                    <IconButton
-                        size="small"
-                        onClick={handleToggleClick}
-                        sx={{
-                            opacity: isHovered || isToggleVisible ? 1 : 0,
-                            transition: 'opacity 0.2s ease',
-                            color: isToggleVisible ? 'primary.main' : 'inherit',
-                        }}
-                    >
-                        <EyeSlashIcon />
-                    </IconButton>
-                </Tooltip>
-                <Tooltip title="Delete filter" placement='left'>
-                    <IconButton
-                        size="small"
-                        onClick={onDelete}
-                        sx={{
-                            color: 'error.main',
-                            opacity: isHovered ? 1 : 0,
-                            transition: 'opacity 0.2s ease',
-                        }}
-                    >
-                        <TrashIcon />
-                    </IconButton>
-                </Tooltip>
-            </Box>
+            {/* Hide actions for linked filters */}
+            {!isLinked && (
+                <Box
+                    sx={{
+                        display: 'flex',
+                        gap: 1,
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        // width: 80, // Fixed width to reserve space
+                        justifyContent: 'flex-end',
+                    }}
+                >
+                    <Tooltip title={filter.enabled ? 'Disable filter' : 'Enable filter'} placement='left'>
+                        <IconButton
+                            size="small"
+                            onClick={handleToggleClick}
+                            sx={{
+                                opacity: isHovered || isToggleVisible ? 1 : 0,
+                                transition: 'opacity 0.2s ease',
+                                color: isToggleVisible ? 'primary.main' : 'inherit',
+                            }}
+                        >
+                            <EyeSlashIcon />
+                        </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Delete filter" placement='left'>
+                        <IconButton
+                            size="small"
+                            onClick={onDelete}
+                            sx={{
+                                color: 'error.main',
+                                opacity: isHovered ? 1 : 0,
+                                transition: 'opacity 0.2s ease',
+                            }}
+                        >
+                            <TrashIcon />
+                        </IconButton>
+                    </Tooltip>
+                </Box>
+            )}
 
             {/* Filter Name Menu */}
             <Menu

@@ -3,6 +3,61 @@ import type { FilterDefinition, OperatorConfig } from './types';
 // Mock filter configurations that would normally come from the server
 const filterDefinitions: FilterDefinition[] = [
     {
+        id: 'country',
+        name: 'Country',
+        valueType: 'single-select',
+        operators: [
+            { id: 'equals', label: 'Is', color: 'primary' },
+            { id: 'not-equals', label: 'Is not', color: 'error' },
+        ],
+        options: [
+            { id: 'uae', label: 'UAE' },
+            { id: 'usa', label: 'USA' },
+            { id: 'uk', label: 'United Kingdom' },
+            { id: 'canada', label: 'Canada' },
+        ],
+        linkedFilter: {
+            filterId: 'sub-country',
+            parentValueMap: {
+                'uae': ['dubai', 'abu-dhabi', 'sharjah', 'ajman'],
+                'usa': ['california', 'texas', 'new-york', 'florida'],
+                'uk': ['england', 'scotland', 'wales', 'northern-ireland'],
+                'canada': ['ontario', 'quebec', 'british-columbia', 'alberta'],
+            },
+        },
+    },
+    {
+        id: 'sub-country',
+        name: 'Sub-Country',
+        valueType: 'multi-select',
+        operators: [
+            { id: 'in', label: 'In', color: 'primary' },
+            { id: 'not-in', label: 'Not in', color: 'error' },
+        ],
+        options: [
+            // UAE
+            { id: 'dubai', label: 'Dubai' },
+            { id: 'abu-dhabi', label: 'Abu Dhabi' },
+            { id: 'sharjah', label: 'Sharjah' },
+            { id: 'ajman', label: 'Ajman' },
+            // USA
+            { id: 'california', label: 'California' },
+            { id: 'texas', label: 'Texas' },
+            { id: 'new-york', label: 'New York' },
+            { id: 'florida', label: 'Florida' },
+            // UK
+            { id: 'england', label: 'England' },
+            { id: 'scotland', label: 'Scotland' },
+            { id: 'wales', label: 'Wales' },
+            { id: 'northern-ireland', label: 'Northern Ireland' },
+            // Canada
+            { id: 'ontario', label: 'Ontario' },
+            { id: 'quebec', label: 'Quebec' },
+            { id: 'british-columbia', label: 'British Columbia' },
+            { id: 'alberta', label: 'Alberta' },
+        ],
+    },
+    {
         id: 'nationality',
         name: 'Nationality',
         valueType: 'single-select',
@@ -85,6 +140,17 @@ export const fetchFilterDefinitions = async (): Promise<FilterDefinition[]> => {
     // Simulate network delay
     await new Promise(resolve => setTimeout(resolve, 300));
     return filterDefinitions;
+};
+
+// Get only primary filters (filters without linked filters and not linked themselves)
+export const getPrimaryFilterDefinitions = (): FilterDefinition[] => {
+    const linkedFilterIds = new Set(
+        filterDefinitions
+            .filter(def => def.linkedFilter)
+            .map(def => def.linkedFilter!.filterId)
+    );
+    
+    return filterDefinitions.filter(def => !linkedFilterIds.has(def.id));
 };
 
 // Get a specific filter definition by ID
