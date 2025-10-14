@@ -39,10 +39,33 @@ export const FilterInput: React.FC<FilterInputProps> = ({
 }) => {
     const [isHovered, setIsHovered] = useState(false);
     const [isToggleVisible, setIsToggleVisible] = useState(false);
+    const containerRef = React.useRef<HTMLDivElement>(null);
 
     const filterDef = filter.filterId ? getFilterDefinition(filter.filterId) : null;
     const isEmptyFilter = !filter.filterId;
     const currentOperator = filterDef?.operators.find(op => op.id === filter.operator);
+
+    // Handle mouse leave with check for active Select menu
+    const handleMouseLeave = () => {
+        // Check if any Select menu is open by looking for open MUI menu
+        const hasOpenMenu = document.querySelector('.MuiMenu-root');
+        if (!hasOpenMenu) {
+            setIsHovered(false);
+        }
+    };
+
+    // Reset hover when Select menus close
+    React.useEffect(() => {
+        const handleMenuClose = () => {
+            if (containerRef.current && !containerRef.current.matches(':hover')) {
+                setIsHovered(false);
+            }
+        };
+
+        // Listen for menu close events
+        document.addEventListener('click', handleMenuClose);
+        return () => document.removeEventListener('click', handleMenuClose);
+    }, []);
 
     // Handle filter name change
     const handleFilterNameChange = (event: any) => {
@@ -101,8 +124,9 @@ export const FilterInput: React.FC<FilterInputProps> = ({
 
     return (
         <Box
+            ref={containerRef}
             onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
+            onMouseLeave={handleMouseLeave}
             sx={{
                 display: 'flex',
                 alignItems: 'center',
