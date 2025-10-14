@@ -272,15 +272,7 @@ export const FilterInput: React.FC<FilterInputProps> = ({
                             size="small"
                             color={isEmptyFilter ? 'default' : (currentOperator?.color || 'default')}
                             sx={{
-                                fontWeight: 400,
-                                height: 24,
                                 opacity: isEmptyFilter ? 0.5 : 1,
-                                '& .MuiChip-label': {
-                                    fontSize: '13px',
-                                    lineHeight: '18px',
-                                    px: 1,
-                                    color: isEmptyFilter ? 'text.disabled' : 'inherit',
-                                },
                             }}
                         />
                         <Icon
@@ -446,6 +438,7 @@ export const FilterInput: React.FC<FilterInputProps> = ({
                         <Chip
                             label={operator.label}
                             size="small"
+                            variant="filled"
                             color={operator.color}
                             sx={{ fontWeight: 500 }}
                         />
