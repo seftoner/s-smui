@@ -120,7 +120,6 @@ export const FilterBar: React.FC<FilterBarProps> = ({ onApply }) => {
                 display: 'flex',
                 flexDirection: 'column',
                 height: '100%',
-                pb: 2,
             }}
         >
             {/* Header */}
