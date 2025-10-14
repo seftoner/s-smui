@@ -3,7 +3,6 @@ import {
     Box,
     Chip,
     IconButton,
-    Menu,
     MenuItem,
     TextField,
     Checkbox,
@@ -11,12 +10,11 @@ import {
     Paper,
     Tooltip,
     Typography,
-    Icon,
 } from '@mui/material';
-import { TrashIcon, EyeSlashIcon, CaretDownIcon } from '@phosphor-icons/react';
-import type { ActiveFilter, FilterDefinition, OperatorConfig } from './types';
+import { TrashIcon, EyeSlashIcon } from '@phosphor-icons/react';
+import type { ActiveFilter, FilterDefinition } from './types';
 import { getFilterDefinition } from './filterConfigService';
-import { FilterSection } from './FilterSection';
+import { FilterSelect } from './FilterSelect';
 
 interface FilterInputProps {
     filter: ActiveFilter;
@@ -24,9 +22,9 @@ interface FilterInputProps {
     onChange: (filter: ActiveFilter) => void;
     onDelete: () => void;
     onToggleEnabled: () => void;
-    onFilterTypeChange?: (oldFilterId: string, newFilterId: string) => void; // Notify parent of filter type change
-    isLinked?: boolean; // Is this a linked (child) filter?
-    isLinkedEnabled?: boolean; // Is the parent filter enabled with a value?
+    onFilterTypeChange?: (oldFilterId: string, newFilterId: string) => void;
+    isLinked?: boolean;
+    isLinkedEnabled?: boolean;
 }
 
 export const FilterInput: React.FC<FilterInputProps> = ({
@@ -41,30 +39,14 @@ export const FilterInput: React.FC<FilterInputProps> = ({
 }) => {
     const [isHovered, setIsHovered] = useState(false);
     const [isToggleVisible, setIsToggleVisible] = useState(false);
-    const [filterNameAnchor, setFilterNameAnchor] = useState<null | HTMLElement>(null);
-    const [operatorAnchor, setOperatorAnchor] = useState<null | HTMLElement>(null);
-    const [valueAnchor, setValueAnchor] = useState<null | HTMLElement>(null);
 
     const filterDef = filter.filterId ? getFilterDefinition(filter.filterId) : null;
     const isEmptyFilter = !filter.filterId;
-
-    // For empty filters, we still need to render something
     const currentOperator = filterDef?.operators.find(op => op.id === filter.operator);
 
     // Handle filter name change
-    const handleFilterNameClick = (event: React.MouseEvent<HTMLElement>) => {
-        // Don't allow changing filter name for linked filters or if not enabled
-        if (isLinked || !filter.enabled || !isLinkedEnabled) return;
-        setFilterNameAnchor(event.currentTarget);
-        setIsHovered(false);
-    };
-
-    const handleFilterNameClose = () => {
-        setFilterNameAnchor(null);
-        setIsHovered(false); // Reset hover state when menu closes
-    };
-
-    const handleFilterNameSelect = (newFilterId: string) => {
+    const handleFilterNameChange = (event: any) => {
+        const newFilterId = event.target.value as string;
         const newFilterDef = getFilterDefinition(newFilterId);
         if (!newFilterDef) return;
 
@@ -75,11 +57,6 @@ export const FilterInput: React.FC<FilterInputProps> = ({
             defaultValue = [];
         }
 
-        setIsHovered(false);
-
-        // Notify parent about filter type change FIRST
-        // Parent will handle linked filter creation/deletion
-        // and return the new linkedFilterId if needed
         const updatedFilter: ActiveFilter = {
             ...filter,
             filterId: newFilterId,
@@ -88,74 +65,30 @@ export const FilterInput: React.FC<FilterInputProps> = ({
         };
 
         if (onFilterTypeChange) {
-            // For empty filters, use empty string as oldFilterId
             const oldFilterId = filter.filterId || '';
             onFilterTypeChange(oldFilterId, newFilterId);
         }
 
-        // Update the filter - the linkedFilterId will be handled separately
         onChange(updatedFilter);
-        handleFilterNameClose();
     };
 
     // Handle operator change
-    const handleOperatorClick = (event: React.MouseEvent<HTMLElement>) => {
-        if (!filter.enabled || !isLinkedEnabled || isEmptyFilter) return;
-        setOperatorAnchor(event.currentTarget);
-        setIsHovered(false);
-    };
+    const handleOperatorChange = (event: any) => {
+        const operatorId = event.target.value as string;
+        const operator = filterDef?.operators.find(op => op.id === operatorId);
+        if (!operator) return;
 
-    const handleOperatorClose = () => {
-        setOperatorAnchor(null);
-        setIsHovered(false); // Reset hover state when menu closes
-    };
-
-    const handleOperatorSelect = (operator: OperatorConfig) => {
         onChange({
             ...filter,
             operator: operator.id,
         });
-        handleOperatorClose();
     };
 
     // Handle value change
-    const handleValueClick = (event: React.MouseEvent<HTMLElement>) => {
-        // Only show menu for select types, not for text
-        if (!filter.enabled || !isLinkedEnabled || isEmptyFilter) return;
-        if (filterDef?.valueType !== 'text') {
-            setValueAnchor(event.currentTarget);
-        }
-    };
-
-    const handleValueClose = () => {
-        setValueAnchor(null);
-        setIsHovered(false); // Reset hover state when menu closes
-    };
-
     const handleTextValueChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         onChange({
             ...filter,
             value: event.target.value,
-        });
-    };
-
-    const handleSingleSelectChange = (optionId: string) => {
-        onChange({
-            ...filter,
-            value: optionId,
-        });
-        handleValueClose();
-    };
-
-    const handleMultiSelectChange = (optionId: string) => {
-        const currentValues = Array.isArray(filter.value) ? filter.value : [];
-        const newValues = currentValues.includes(optionId)
-            ? currentValues.filter(id => id !== optionId)
-            : [...currentValues, optionId];
-
-        onChange({
-            ...filter,
-            value: newValues,
         });
     };
 
@@ -164,32 +97,6 @@ export const FilterInput: React.FC<FilterInputProps> = ({
         event.stopPropagation();
         setIsToggleVisible(!isToggleVisible);
         onToggleEnabled();
-    };
-
-    // Get display value
-    const getDisplayValue = (): string => {
-        if (!filterDef) return 'Value';
-
-        if (filterDef.valueType === 'text') {
-            return filter.value as string || 'Enter value...';
-        }
-
-        if (filterDef.valueType === 'single-select') {
-            const option = filterDef.options?.find(opt => opt.id === filter.value);
-            return option?.label || 'Select...';
-        }
-
-        if (filterDef.valueType === 'multi-select') {
-            const values = Array.isArray(filter.value) ? filter.value : [];
-            if (values.length === 0) return 'Select...';
-            if (values.length === 1) {
-                const option = filterDef.options?.find(opt => opt.id === values[0]);
-                return option?.label || 'Select...';
-            }
-            return `${values.length} selected`;
-        }
-
-        return '';
     };
 
     return (
@@ -208,7 +115,7 @@ export const FilterInput: React.FC<FilterInputProps> = ({
                 sx={{
                     display: 'flex',
                     flexDirection: 'column',
-                    flex: 1, // Take up available width
+                    flex: 1,
                     borderRadius: 3,
                     border: '1px solid',
                     borderColor: 'divider',
@@ -222,32 +129,30 @@ export const FilterInput: React.FC<FilterInputProps> = ({
                 }}
             >
                 {/* Filter Name Row */}
-                <FilterSection
-                    onClick={handleFilterNameClick}
-                    isClickable={filter.enabled && isLinkedEnabled && !isLinked}
-                    sx={{ minHeight: 44 }}
+                <FilterSelect
+                    value={filter.filterId || ''}
+                    onChange={handleFilterNameChange}
+                    disabled={!filter.enabled || !isLinkedEnabled || isLinked}
+                    displayEmpty
+                    renderValue={() => (
+                        isEmptyFilter ? (
+                            <Typography variant="body1" color='text.disabled'>
+                                Select filter type
+                            </Typography>
+                        ) : (
+                            <Typography variant="body1">
+                                {isEmptyFilter ? 'Select filter type' : filterDef?.name}
+                            </Typography>
+                        )
+
+                    )}
                 >
-                    <Box sx={{ display: 'flex', gap: 1 }}>
-                        <Typography
-                            variant="body1"
-                            sx={{
-                                color: isEmptyFilter ? 'text.disabled' : 'text.primary'
-                            }}
-                        >
-                            {isEmptyFilter ? 'Select filter type' : filterDef?.name}
-                        </Typography>
-                    </Box>
-                    <Icon
-                        fontSize='small'
-                        sx={{
-                            color: 'action.active',
-                            display: 'flex',
-                            alignItems: 'center',
-                        }}
-                    >
-                        <CaretDownIcon />
-                    </Icon>
-                </FilterSection>
+                    {availableFilters.map((filterOption) => (
+                        <MenuItem key={filterOption.id} value={filterOption.id}>
+                            {filterOption.name}
+                        </MenuItem>
+                    ))}
+                </FilterSelect>
 
                 {/* Divider */}
                 <Box sx={{ height: '1px', bgcolor: 'divider' }} />
@@ -257,43 +162,40 @@ export const FilterInput: React.FC<FilterInputProps> = ({
                     sx={{
                         display: 'flex',
                         alignItems: 'stretch',
-                        minHeight: 44,
                     }}
                 >
-
                     {/* Operator Section */}
-                    <FilterSection
-                        onClick={handleOperatorClick}
-                        isClickable={filter.enabled && isLinkedEnabled && !isEmptyFilter}
+                    <FilterSelect
+                        value={filter.operator || ''}
+                        onChange={handleOperatorChange}
+                        disabled={!filter.enabled || !isLinkedEnabled || isEmptyFilter}
+                        displayEmpty
+                        renderValue={() => (
+                            <Chip
+                                label={isEmptyFilter ? 'Operator' : (currentOperator?.label || '')}
+                                size="small"
+                                color={isEmptyFilter ? 'default' : (currentOperator?.color || 'default')}
+                                sx={{ opacity: isEmptyFilter ? 0.5 : 1 }}
+                            />
+                        )}
                         sx={{ flex: 1 }}
                     >
-                        <Chip
-                            label={isEmptyFilter ? 'Operator' : (currentOperator?.label || '')}
-                            size="small"
-                            color={isEmptyFilter ? 'default' : (currentOperator?.color || 'default')}
-                            sx={{
-                                opacity: isEmptyFilter ? 0.5 : 1,
-                            }}
-                        />
-                        <Icon
-                            fontSize='small'
-                            sx={{
-                                color: isEmptyFilter ? 'action.disabled' : 'action.active',
-                                display: 'flex',
-                                alignItems: 'center',
-                            }}
-                        >
-                            <CaretDownIcon />
-                        </Icon>
-                    </FilterSection>
+                        {filterDef?.operators.map((operator) => (
+                            <MenuItem key={operator.id} value={operator.id}>
+                                <Chip
+                                    label={operator.label}
+                                    size="small"
+                                    color={operator.color}
+                                />
+                            </MenuItem>
+                        ))}
+                    </FilterSelect>
 
                     {/* Vertical Divider */}
-                    <Box sx={{ width: '1px', height: 44, bgcolor: 'divider' }} />
-
+                    <Box sx={{ width: '1px', bgcolor: 'divider' }} />
 
                     {/* Value Section */}
                     {isEmptyFilter ? (
-                        // Empty filter placeholder
                         <Box
                             sx={{
                                 flex: 1.6,
@@ -305,12 +207,11 @@ export const FilterInput: React.FC<FilterInputProps> = ({
                                 fontStyle: 'italic',
                             }}
                         >
-                            <Typography variant="body2" sx={{ color: 'text.disabled' }}>
+                            <Typography variant="body1" sx={{ color: 'text.disabled' }}>
                                 Value
                             </Typography>
                         </Box>
                     ) : filterDef?.valueType === 'text' ? (
-                        // Text input directly in the value section
                         <Box
                             sx={{
                                 flex: 1.6,
@@ -339,184 +240,150 @@ export const FilterInput: React.FC<FilterInputProps> = ({
                                 }}
                             />
                         </Box>
-                    ) : (
-                        // Clickable area for select types
-                        <FilterSection
-                            onClick={handleValueClick}
-                            isClickable={filter.enabled && isLinkedEnabled}
+                    ) : filterDef?.valueType === 'single-select' || filterDef?.valueType === 'multi-select' ? (
+                        <FilterSelect
+                            multiple={filterDef.valueType === 'multi-select'}
+                            value={filterDef.valueType === 'multi-select'
+                                ? (Array.isArray(filter.value) ? filter.value : [])
+                                : (filter.value as string)
+                            }
+                            onChange={(e) => {
+                                const value = e.target.value;
+                                if (filterDef.valueType === 'multi-select') {
+                                    const newValue = typeof value === 'string' ? value.split(',') : value;
+                                    onChange({
+                                        ...filter,
+                                        value: newValue as string[],
+                                    });
+                                } else {
+                                    onChange({
+                                        ...filter,
+                                        value: value as string,
+                                    });
+                                }
+                            }}
+                            disabled={!filter.enabled || !isLinkedEnabled}
+                            displayEmpty
+                            renderValue={(selected) => {
+                                const isMulti = filterDef.valueType === 'multi-select';
+                                const values = isMulti ? (Array.isArray(selected) ? selected : []) : [];
+                                const isEmpty = isMulti ? values.length === 0 : !selected;
+
+                                if (isEmpty) {
+                                    return <Typography variant="body1" color='text.disabled'>Select...</Typography>;
+                                }
+
+                                if (isMulti) {
+                                    const firstOption = filterDef?.options?.find(opt => opt.id === values[0]);
+                                    return (
+                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flex: 1, overflow: 'hidden' }}>
+                                            <Typography
+                                                variant="body1"
+                                                sx={{
+                                                    overflow: 'hidden',
+                                                    textOverflow: 'ellipsis',
+                                                    whiteSpace: 'nowrap',
+                                                    flex: 1
+                                                }}
+                                            >
+                                                {firstOption?.label}
+                                            </Typography>
+                                            {values.length > 1 && (
+                                                <Chip
+                                                    label={`+${values.length - 1}`}
+                                                    size="small"
+                                                    color="primary"
+                                                    sx={{
+                                                        height: 20,
+                                                        fontSize: '0.75rem',
+                                                    }}
+                                                />
+                                            )}
+                                        </Box>
+                                    );
+                                }
+
+                                const option = filterDef?.options?.find(opt => opt.id === selected);
+                                return (
+                                    <Typography
+                                        variant="body1"
+                                        sx={{
+                                            overflow: 'hidden',
+                                            textOverflow: 'ellipsis',
+                                            whiteSpace: 'nowrap'
+                                        }}
+                                    >
+                                        {option?.label}
+                                    </Typography>
+                                );
+                            }}
                             sx={{ flex: 1.6 }}
                         >
-                            <Typography variant="body1" sx={{ fontWeight: 400 }}>
-                                {getDisplayValue()}
-                            </Typography>
-                            <Icon
-                                fontSize='small'
-                                sx={{
-                                    color: 'action.active',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                }}
-                            >
-                                <CaretDownIcon />
-                            </Icon>
-                        </FilterSection>
-                    )}
+                            {filterDef?.options?.map((option) => {
+                                if (filterDef.valueType === 'multi-select') {
+                                    const values = Array.isArray(filter.value) ? filter.value : [];
+                                    const isChecked = values.includes(option.id);
+
+                                    return (
+                                        <MenuItem key={option.id} value={option.id}>
+                                            <Checkbox checked={isChecked} />
+                                            <ListItemText primary={option.label} />
+                                        </MenuItem>
+                                    );
+                                } else {
+                                    return (
+                                        <MenuItem key={option.id} value={option.id}>
+                                            {option.label}
+                                        </MenuItem>
+                                    );
+                                }
+                            })}
+                        </FilterSelect>
+                    ) : null}
                 </Box>
             </Paper>
 
-            {/* Reserved Action Space - Always present to prevent layout shift */}
-            {/* Hide actions for linked filters */}
-            {!isLinked && (
-                <Box
-                    sx={{
-                        display: 'flex',
-                        gap: 1,
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        // width: 80, // Fixed width to reserve space
-                        justifyContent: 'flex-end',
-                    }}
-                >
-                    <Tooltip title={filter.enabled ? 'Disable filter' : 'Enable filter'} placement='left'>
-                        <IconButton
-                            size="small"
-                            onClick={handleToggleClick}
-                            sx={{
-                                opacity: isHovered || isToggleVisible ? 1 : 0,
-                                transition: 'opacity 0.2s ease',
-                                color: isToggleVisible ? 'primary.main' : 'inherit',
-                            }}
-                        >
-                            <EyeSlashIcon />
-                        </IconButton>
-                    </Tooltip>
-                    <Tooltip title="Delete filter" placement='left'>
-                        <IconButton
-                            size="small"
-                            onClick={onDelete}
-                            sx={{
-                                color: 'error.main',
-                                opacity: isHovered ? 1 : 0,
-                                transition: 'opacity 0.2s ease',
-                            }}
-                        >
-                            <TrashIcon />
-                        </IconButton>
-                    </Tooltip>
-                </Box>
-            )}
-
-            {/* Filter Name Menu */}
-            <Menu
-                anchorEl={filterNameAnchor}
-                open={Boolean(filterNameAnchor)}
-                onClose={handleFilterNameClose}
-            >
-                {availableFilters.map((filterOption) => (
-                    <MenuItem
-                        key={filterOption.id}
-                        onClick={() => handleFilterNameSelect(filterOption.id)}
-                        selected={filterOption.id === filter.filterId}
+            {/* Actions */}
+            {
+                !isLinked && (
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            gap: 1,
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            justifyContent: 'flex-end',
+                        }}
                     >
-                        {filterOption.name}
-                    </MenuItem>
-                ))}
-            </Menu>
-
-            {/* Operator Menu */}
-            <Menu
-                anchorEl={operatorAnchor}
-                open={Boolean(operatorAnchor)}
-                onClose={handleOperatorClose}
-            >
-                {filterDef?.operators.map((operator) => (
-                    <MenuItem
-                        key={operator.id}
-                        onClick={() => handleOperatorSelect(operator)}
-                        selected={operator.id === filter.operator}
-                    >
-                        <Chip
-                            label={operator.label}
-                            size="small"
-                            variant="filled"
-                            color={operator.color}
-                            sx={{ fontWeight: 500 }}
-                        />
-                    </MenuItem>
-                ))}
-            </Menu>
-
-            {/* Value Menu/Input */}
-            {filterDef?.valueType === 'text' && (
-                <Menu
-                    anchorEl={valueAnchor}
-                    open={Boolean(valueAnchor)}
-                    onClose={handleValueClose}
-                >
-                    <Box sx={{ p: 2, minWidth: 250 }}>
-                        <TextField
-                            fullWidth
-                            size="small"
-                            placeholder={filterDef?.placeholder}
-                            value={filter.value as string}
-                            onChange={handleTextValueChange}
-                            autoFocus
-                            autoComplete="off"
-                            slotProps={{
-                                input: {
-                                    autoComplete: 'off',
-                                },
-                            }}
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter') {
-                                    handleValueClose();
-                                }
-                            }}
-                        />
-                    </Box>
-                </Menu>
-            )}
-
-            {filterDef?.valueType === 'single-select' && (
-                <Menu
-                    anchorEl={valueAnchor}
-                    open={Boolean(valueAnchor)}
-                    onClose={handleValueClose}
-                >
-                    {filterDef?.options?.map((option) => (
-                        <MenuItem
-                            key={option.id}
-                            onClick={() => handleSingleSelectChange(option.id)}
-                            selected={option.id === filter.value}
-                        >
-                            {option.label}
-                        </MenuItem>
-                    ))}
-                </Menu>
-            )}
-
-            {filterDef?.valueType === 'multi-select' && (
-                <Menu
-                    anchorEl={valueAnchor}
-                    open={Boolean(valueAnchor)}
-                    onClose={handleValueClose}
-                >
-                    {filterDef?.options?.map((option) => {
-                        const values = Array.isArray(filter.value) ? filter.value : [];
-                        const isChecked = values.includes(option.id);
-
-                        return (
-                            <MenuItem
-                                key={option.id}
-                                onClick={() => handleMultiSelectChange(option.id)}
+                        <Tooltip title={filter.enabled ? 'Disable filter' : 'Enable filter'} placement='left'>
+                            <IconButton
+                                size="small"
+                                onClick={handleToggleClick}
+                                sx={{
+                                    opacity: isHovered || isToggleVisible ? 1 : 0,
+                                    transition: 'opacity 0.2s ease',
+                                    color: isToggleVisible ? 'primary.main' : 'inherit',
+                                }}
                             >
-                                <Checkbox checked={isChecked} />
-                                <ListItemText primary={option.label} />
-                            </MenuItem>
-                        );
-                    })}
-                </Menu>
-            )}
-        </Box>
+                                <EyeSlashIcon />
+                            </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Delete filter" placement='left'>
+                            <IconButton
+                                size="small"
+                                onClick={onDelete}
+                                sx={{
+                                    color: 'error.main',
+                                    opacity: isHovered ? 1 : 0,
+                                    transition: 'opacity 0.2s ease',
+                                }}
+                            >
+                                <TrashIcon />
+                            </IconButton>
+                        </Tooltip>
+                    </Box>
+                )
+            }
+        </Box >
     );
 };

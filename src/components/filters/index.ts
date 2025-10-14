@@ -4,7 +4,6 @@ export { FilterBar } from './FilterBar';
 export { FilterOperator } from './FilterOperator';
 export { FilterEmptyState } from './FilterEmptyState';
 export { FilterList } from './FilterList';
-export { FilterSection } from './FilterSection';
 export * from './types';
 export * from './filterConfigService';
 export * from './filterPanelMachine';
