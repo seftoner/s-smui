@@ -153,30 +153,38 @@ export const FilterInput: React.FC<FilterInputProps> = ({
                 }}
             >
                 {/* Filter Name Row */}
-                <FilterSelect
-                    value={filter.filterId || ''}
-                    onChange={handleFilterNameChange}
-                    disabled={!filter.enabled || !isLinkedEnabled || isLinked}
-                    displayEmpty
-                    renderValue={() => (
-                        isEmptyFilter ? (
-                            <Typography variant="body1" color='text.disabled'>
-                                Select filter type
-                            </Typography>
-                        ) : (
-                            <Typography variant="body1">
+                {isLinked ? (
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            px: 1,
+                            py: 2,
+                        }}
+                    >
+                        <Typography variant="body1" color={isEmptyFilter ? 'text.disabled' : 'text.primary'}>
+                            {isEmptyFilter ? 'Select filter type' : filterDef?.name}
+                        </Typography>
+                    </Box>
+                ) : (
+                    <FilterSelect
+                        value={filter.filterId || ''}
+                        onChange={handleFilterNameChange}
+                        disabled={!filter.enabled || !isLinkedEnabled}
+                        displayEmpty
+                        renderValue={() => (
+                            <Typography variant="body1" color={isEmptyFilter ? 'text.disabled' : 'text.primary'}>
                                 {isEmptyFilter ? 'Select filter type' : filterDef?.name}
                             </Typography>
-                        )
-
-                    )}
-                >
-                    {availableFilters.map((filterOption) => (
-                        <MenuItem key={filterOption.id} value={filterOption.id}>
-                            {filterOption.name}
-                        </MenuItem>
-                    ))}
-                </FilterSelect>
+                        )}
+                    >
+                        {availableFilters.map((filterOption) => (
+                            <MenuItem key={filterOption.id} value={filterOption.id}>
+                                {filterOption.name}
+                            </MenuItem>
+                        ))}
+                    </FilterSelect>
+                )}
 
                 {/* Divider */}
                 <Box sx={{ height: '1px', bgcolor: 'divider' }} />
