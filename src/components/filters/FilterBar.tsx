@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Box, Button, IconButton, Typography, Paper } from '@mui/material';
 import { TextIndentIcon, TrashIcon, PlusIcon } from '@phosphor-icons/react';
 import { useMachine } from '@xstate/react';
@@ -9,11 +9,21 @@ import { FilterEmptyState } from './FilterEmptyState';
 import type { ActiveFilter, FilterDefinition } from './types';
 import { fetchFilterDefinitions, getDefaultOperator, getPrimaryFilterDefinitions, getFilterDefinition } from './filterConfigService';
 import { filterPanelMachine } from './filterPanelMachine';
-import { calculateCanApply } from './filterUtils';
+import { calculateCanApply, getFilterGroups } from './filterUtils';
+import { useOverflowDetection } from '../../hooks/useOverflowDetection';
 
 interface FilterBarProps {
     onApply?: (filters: ActiveFilter[], operator: 'and' | 'or') => void;
 }
+
+const AddFilterButton: React.FC<{ onClick: () => void }> = ({ onClick }) => (
+    <Button
+        startIcon={<PlusIcon size={16} />}
+        onClick={onClick}
+    >
+        Add filter
+    </Button>
+);
 
 export const FilterBar: React.FC<FilterBarProps> = ({ onApply }) => {
     const [primaryFilters, setPrimaryFilters] = useState<FilterDefinition[]>([]);
@@ -55,8 +65,16 @@ export const FilterBar: React.FC<FilterBarProps> = ({ onApply }) => {
         }
     }, [state.context.filters, send]);
 
+    const filterGroups = useMemo(
+        () => getFilterGroups(state.context.filters),
+        [state.context.filters]
+    );
+    const hasFilters = filterGroups.length > 0;
+
+    const { containerRef: scrollableRef, isOverflowing, evaluateOverflow } = useOverflowDetection();
+
     // New function to handle adding an empty filter (for button click)
-    const handleAddEmptyFilter = () => {
+    const handleAddEmptyFilter = useCallback(() => {
         const newFilter: ActiveFilter = {
             id: `filter-${Date.now()}`,
             value: '',
@@ -67,14 +85,18 @@ export const FilterBar: React.FC<FilterBarProps> = ({ onApply }) => {
 
         // Auto-scroll to bottom after adding filter (with slight delay to ensure DOM update)
         setTimeout(() => {
-            if (scrollableRef.current && isOverflowing) {
-                scrollableRef.current.scrollTo({
-                    top: scrollableRef.current.scrollHeight,
+            const container = scrollableRef.current;
+            if (!container) return;
+
+            const shouldScroll = evaluateOverflow();
+            if (shouldScroll) {
+                container.scrollTo({
+                    top: container.scrollHeight,
                     behavior: 'smooth'
                 });
             }
         }, 100);
-    };
+    }, [send, evaluateOverflow]);
 
     const handleDeleteFilter = (filterId: string) => {
         const filter = state.context.filters.find(f => f.id === filterId);
@@ -98,39 +120,49 @@ export const FilterBar: React.FC<FilterBarProps> = ({ onApply }) => {
 
         if (!newFilterDef) return;
 
+        const removeLinkedFilter = (linkedFilterId?: string) => {
+            if (!linkedFilterId) return;
+            send({ type: 'DELETE_FILTER', id: linkedFilterId });
+        };
+
+        const createAndAttachLinkedFilter = (primaryId: string, linkedFilterTargetId: string) => {
+            const linkedFilterDef = getFilterDefinition(linkedFilterTargetId);
+            if (!linkedFilterDef) {
+                return;
+            }
+
+            const linkedDefaultOperator = getDefaultOperator(linkedFilterDef.id);
+            if (!linkedDefaultOperator) {
+                return;
+            }
+
+            const linkedFilter: ActiveFilter = {
+                id: `filter-${Date.now()}-linked`,
+                filterId: linkedFilterDef.id,
+                operator: linkedDefaultOperator.id,
+                value: linkedFilterDef.valueType === 'multi-select' ? [] : '',
+                enabled: false, // Start disabled until primary has value
+            };
+
+            send({ type: 'ADD_FILTER', filter: linkedFilter });
+            pendingLinkedFilterRef.current = {
+                filterId: primaryId,
+                linkedFilterId: linkedFilter.id
+            };
+        };
+
         // Check if we're switching from a filter with linked to one without, or vice versa
         const hadLinkedFilter = oldFilterDef?.linkedFilter !== undefined;
         const hasLinkedFilter = newFilterDef.linkedFilter !== undefined;
 
         // Case 1: Old filter had a linked filter, new one doesn't - delete the linked filter
         if (hadLinkedFilter && !hasLinkedFilter && filter.linkedFilterId) {
-            send({ type: 'DELETE_FILTER', id: filter.linkedFilterId });
+            removeLinkedFilter(filter.linkedFilterId);
         }
 
         // Case 2: New filter has a linked filter but old one didn't (including empty filters) - create the linked filter
         else if (!hadLinkedFilter && hasLinkedFilter && newFilterDef.linkedFilter) {
-            const linkedFilterDef = getFilterDefinition(newFilterDef.linkedFilter.filterId);
-            if (linkedFilterDef) {
-                const linkedDefaultOperator = getDefaultOperator(linkedFilterDef.id);
-                if (linkedDefaultOperator) {
-                    const linkedFilter: ActiveFilter = {
-                        id: `filter-${Date.now()}-linked`,
-                        filterId: linkedFilterDef.id,
-                        operator: linkedDefaultOperator.id,
-                        value: linkedFilterDef.valueType === 'multi-select' ? [] : '',
-                        enabled: false, // Start disabled until primary has value
-                    };
-
-                    // Add the linked filter
-                    send({ type: 'ADD_FILTER', filter: linkedFilter });
-
-                    // Store pending update to link the filters
-                    pendingLinkedFilterRef.current = {
-                        filterId,
-                        linkedFilterId: linkedFilter.id
-                    };
-                }
-            }
+            createAndAttachLinkedFilter(filter.id, newFilterDef.linkedFilter.filterId);
         }
 
         // Case 3: Both have linked filters - replace the old linked filter with a new one
@@ -138,31 +170,8 @@ export const FilterBar: React.FC<FilterBarProps> = ({ onApply }) => {
             const oldLinkedFilterId = filter.linkedFilterId;
 
             // Delete old linked filter
-            send({ type: 'DELETE_FILTER', id: oldLinkedFilterId });
-
-            // Create new linked filter
-            const linkedFilterDef = getFilterDefinition(newFilterDef.linkedFilter.filterId);
-            if (linkedFilterDef) {
-                const linkedDefaultOperator = getDefaultOperator(linkedFilterDef.id);
-                if (linkedDefaultOperator) {
-                    const linkedFilter: ActiveFilter = {
-                        id: `filter-${Date.now()}-linked`,
-                        filterId: linkedFilterDef.id,
-                        operator: linkedDefaultOperator.id,
-                        value: linkedFilterDef.valueType === 'multi-select' ? [] : '',
-                        enabled: false,
-                    };
-
-                    // Add the new linked filter
-                    send({ type: 'ADD_FILTER', filter: linkedFilter });
-
-                    // Store pending update to link the filters
-                    pendingLinkedFilterRef.current = {
-                        filterId,
-                        linkedFilterId: linkedFilter.id
-                    };
-                }
-            }
+            removeLinkedFilter(oldLinkedFilterId);
+            createAndAttachLinkedFilter(filter.id, newFilterDef.linkedFilter.filterId);
         }
     };
 
@@ -174,21 +183,11 @@ export const FilterBar: React.FC<FilterBarProps> = ({ onApply }) => {
     };
 
     const canApply = calculateCanApply(state.context.filters);
-    const hasFilters = state.context.filters.length > 0;
-
-    // Check if the scrollable container has overflow
-    const [isOverflowing, setIsOverflowing] = useState(false);
-    const scrollableRef = React.useRef<HTMLDivElement>(null);
 
     // Check for overflow when filters change
     useEffect(() => {
-        if (scrollableRef.current && hasFilters) {
-            const { scrollHeight, clientHeight } = scrollableRef.current;
-            setIsOverflowing(scrollHeight > clientHeight);
-        } else {
-            setIsOverflowing(false);
-        }
-    }, [state.context.filters, hasFilters]);
+        evaluateOverflow();
+    }, [evaluateOverflow]);
 
     if (isLoading) {
         return null; // or a loading skeleton
@@ -270,37 +269,19 @@ export const FilterBar: React.FC<FilterBarProps> = ({ onApply }) => {
                         }}
                     >
                         <FilterEmptyState />
-                        <Button
-                            startIcon={<PlusIcon size={16} />}
-                            onClick={handleAddEmptyFilter}
-                        >
-                            Add filter
-                        </Button>
+                        <AddFilterButton onClick={handleAddEmptyFilter} />
                     </Box>
                 )}
 
                 {/* Filter list when we have filters */}
                 {hasFilters && (
                     <>
-                        {state.context.filters.map((filter, index) => {
-                            // Skip if this is a linked filter (it will be rendered with its primary)
-                            const isLinkedFilter = state.context.filters.some(f => f.linkedFilterId === filter.id);
-                            if (isLinkedFilter) return null;
-
-                            const hasLinkedFilter = filter.linkedFilterId !== undefined;
-                            const linkedFilter = hasLinkedFilter
-                                ? state.context.filters.find(f => f.id === filter.linkedFilterId)
-                                : undefined;
-
-                            // Calculate if we need an operator after this filter group
-                            const nextNonLinkedFilterIndex = state.context.filters.findIndex(
-                                (f, i) => i > index && !state.context.filters.some(parent => parent.linkedFilterId === f.id)
-                            );
-                            const needsOperator = nextNonLinkedFilterIndex !== -1;
+                        {filterGroups.map((group, index) => {
+                            const isLastGroup = index === filterGroups.length - 1;
+                            const { primary, linked } = group;
 
                             return (
-                                <React.Fragment key={filter.id}>
-                                    {/* Filter Item or Linked Filter Group */}
+                                <React.Fragment key={primary.id}>
                                     <Box
                                         sx={{
                                             pr: 2,
@@ -308,31 +289,30 @@ export const FilterBar: React.FC<FilterBarProps> = ({ onApply }) => {
                                             py: 1,
                                         }}
                                     >
-                                        {hasLinkedFilter && linkedFilter ? (
+                                        {linked ? (
                                             <LinkedFilterInput
-                                                primaryFilter={filter}
-                                                linkedFilter={linkedFilter}
+                                                primaryFilter={primary}
+                                                linkedFilter={linked}
                                                 availableFilters={primaryFilters}
-                                                onPrimaryChange={(updated) => send({ type: 'UPDATE_FILTER', id: filter.id, filter: updated })}
-                                                onLinkedChange={(updated) => send({ type: 'UPDATE_FILTER', id: linkedFilter.id, filter: updated })}
-                                                onDelete={() => handleDeleteFilter(filter.id)}
-                                                onTogglePrimaryEnabled={() => send({ type: 'TOGGLE_FILTER_ENABLED', id: filter.id })}
-                                                onFilterTypeChange={(oldFilterId, newFilterId) => handleFilterTypeChange(filter.id, oldFilterId, newFilterId)}
+                                                onPrimaryChange={(updated) => send({ type: 'UPDATE_FILTER', id: primary.id, filter: updated })}
+                                                onLinkedChange={(updated) => send({ type: 'UPDATE_FILTER', id: linked.id, filter: updated })}
+                                                onDelete={() => handleDeleteFilter(primary.id)}
+                                                onTogglePrimaryEnabled={() => send({ type: 'TOGGLE_FILTER_ENABLED', id: primary.id })}
+                                                onFilterTypeChange={(oldFilterId, newFilterId) => handleFilterTypeChange(primary.id, oldFilterId, newFilterId)}
                                             />
                                         ) : (
                                             <FilterInput
-                                                filter={filter}
+                                                filter={primary}
                                                 availableFilters={primaryFilters}
-                                                onChange={(updated) => send({ type: 'UPDATE_FILTER', id: filter.id, filter: updated })}
-                                                onDelete={() => handleDeleteFilter(filter.id)}
-                                                onToggleEnabled={() => send({ type: 'TOGGLE_FILTER_ENABLED', id: filter.id })}
-                                                onFilterTypeChange={(oldFilterId, newFilterId) => handleFilterTypeChange(filter.id, oldFilterId, newFilterId)}
+                                                onChange={(updated) => send({ type: 'UPDATE_FILTER', id: primary.id, filter: updated })}
+                                                onDelete={() => handleDeleteFilter(primary.id)}
+                                                onToggleEnabled={() => send({ type: 'TOGGLE_FILTER_ENABLED', id: primary.id })}
+                                                onFilterTypeChange={(oldFilterId, newFilterId) => handleFilterTypeChange(primary.id, oldFilterId, newFilterId)}
                                             />
                                         )}
                                     </Box>
 
-                                    {/* Filter Operator (between filter groups) */}
-                                    {needsOperator && (
+                                    {!isLastGroup && (
                                         <FilterOperator
                                             operator={state.context.logicalOperator}
                                             onClick={() => send({ type: 'TOGGLE_LOGICAL_OPERATOR' })}
@@ -345,12 +325,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({ onApply }) => {
                         {/* Add Filter Button - Normal Addition: appears below filters when no overflow */}
                         {!isOverflowing && (
                             <Box sx={{ display: 'flex', justifyContent: 'center', px: 2, py: 1 }}>
-                                <Button
-                                    startIcon={<PlusIcon size={16} />}
-                                    onClick={handleAddEmptyFilter}
-                                >
-                                    Add filter
-                                </Button>
+                                <AddFilterButton onClick={handleAddEmptyFilter} />
                             </Box>
                         )}
                     </>
@@ -360,12 +335,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({ onApply }) => {
             {/* Sticky Add Filter Button - Overflow State: always visible when overflowing */}
             {hasFilters && isOverflowing && (
                 <Box sx={{ display: 'flex', justifyContent: 'center', px: 2, py: 1, flexShrink: 0 }}>
-                    <Button
-                        startIcon={<PlusIcon size={16} />}
-                        onClick={handleAddEmptyFilter}
-                    >
-                        Add filter
-                    </Button>
+                    <AddFilterButton onClick={handleAddEmptyFilter} />
                 </Box>
             )}
 
