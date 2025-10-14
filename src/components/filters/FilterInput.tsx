@@ -16,6 +16,7 @@ import {
 import { TrashIcon, EyeSlashIcon, CaretDownIcon } from '@phosphor-icons/react';
 import type { ActiveFilter, FilterDefinition, OperatorConfig } from './types';
 import { getFilterDefinition } from './filterConfigService';
+import { FilterSection } from './FilterSection';
 
 interface FilterInputProps {
     filter: ActiveFilter;
@@ -221,20 +222,10 @@ export const FilterInput: React.FC<FilterInputProps> = ({
                 }}
             >
                 {/* Filter Name Row */}
-                <Box
-                    onClick={filter.enabled && isLinkedEnabled && !isLinked ? handleFilterNameClick : undefined}
-                    sx={{
-                        minHeight: 44,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        px: 2,
-                        py: 1,
-                        cursor: (filter.enabled && isLinkedEnabled && !isLinked) ? 'pointer' : 'default',
-                        '&:hover': (filter.enabled && isLinkedEnabled && !isLinked) ? {
-                            bgcolor: 'action.hover',
-                        } : {},
-                    }}
+                <FilterSection
+                    onClick={handleFilterNameClick}
+                    isClickable={filter.enabled && isLinkedEnabled && !isLinked}
+                    sx={{ minHeight: 44 }}
                 >
                     <Box sx={{ display: 'flex', gap: 1 }}>
                         <Typography
@@ -256,7 +247,7 @@ export const FilterInput: React.FC<FilterInputProps> = ({
                     >
                         <CaretDownIcon />
                     </Icon>
-                </Box>
+                </FilterSection>
 
                 {/* Divider */}
                 <Box sx={{ height: '1px', bgcolor: 'divider' }} />
@@ -271,20 +262,10 @@ export const FilterInput: React.FC<FilterInputProps> = ({
                 >
 
                     {/* Operator Section */}
-                    <Box
-                        onClick={filter.enabled && isLinkedEnabled && !isEmptyFilter ? handleOperatorClick : undefined}
-                        sx={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            flex: 1,
-                            px: 2,
-                            py: 1,
-                            cursor: (filter.enabled && isLinkedEnabled && !isEmptyFilter) ? 'pointer' : 'default',
-                            '&:hover': (filter.enabled && isLinkedEnabled && !isEmptyFilter) ? {
-                                bgcolor: 'action.hover',
-                            } : {},
-                        }}
+                    <FilterSection
+                        onClick={handleOperatorClick}
+                        isClickable={filter.enabled && isLinkedEnabled && !isEmptyFilter}
+                        sx={{ flex: 1 }}
                     >
                         <Chip
                             label={isEmptyFilter ? 'Operator' : (currentOperator?.label || '')}
@@ -312,7 +293,7 @@ export const FilterInput: React.FC<FilterInputProps> = ({
                         >
                             <CaretDownIcon />
                         </Icon>
-                    </Box>
+                    </FilterSection>
 
                     {/* Vertical Divider */}
                     <Box sx={{ width: '1px', height: 44, bgcolor: 'divider' }} />
@@ -368,20 +349,10 @@ export const FilterInput: React.FC<FilterInputProps> = ({
                         </Box>
                     ) : (
                         // Clickable area for select types
-                        <Box
-                            onClick={filter.enabled && isLinkedEnabled ? handleValueClick : undefined}
-                            sx={{
-                                flex: 1.6,
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'space-between',
-                                px: 2,
-                                py: 1,
-                                cursor: (filter.enabled && isLinkedEnabled) ? 'pointer' : 'default',
-                                '&:hover': (filter.enabled && isLinkedEnabled) ? {
-                                    bgcolor: 'action.hover',
-                                } : {},
-                            }}
+                        <FilterSection
+                            onClick={handleValueClick}
+                            isClickable={filter.enabled && isLinkedEnabled}
+                            sx={{ flex: 1.6 }}
                         >
                             <Typography variant="body1" sx={{ fontWeight: 400 }}>
                                 {getDisplayValue()}
@@ -396,7 +367,7 @@ export const FilterInput: React.FC<FilterInputProps> = ({
                             >
                                 <CaretDownIcon />
                             </Icon>
-                        </Box>
+                        </FilterSection>
                     )}
                 </Box>
             </Paper>

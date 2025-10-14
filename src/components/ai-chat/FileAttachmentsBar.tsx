@@ -49,17 +49,7 @@ export const FileAttachmentsBar: React.FC<FileAttachmentsBarProps> = ({
                     display: 'flex',
                     gap: 3,
                     overflowX: 'auto',
-                    // Scrollbar styling
-                    '&::-webkit-scrollbar': {
-                        height: 8,
-                    },
-                    '&::-webkit-scrollbar-track': {
-                        backgroundColor: 'transparent',
-                    },
-                    '&::-webkit-scrollbar-thumb': {
-                        backgroundColor: 'action.disabled',
-                        borderRadius: 4,
-                    },
+
                 }}
             >
                 {files.map((file) => (
