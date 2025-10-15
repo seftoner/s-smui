@@ -205,7 +205,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({ onApply }) => {
             elevation={0}
             sx={{
                 bgcolor: 'background.surface_2',
-                borderRadius: 2,
+                borderRadius: 3,
                 overflow: 'hidden',
                 display: 'flex',
                 flexDirection: 'column',
