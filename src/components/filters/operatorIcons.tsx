@@ -12,38 +12,29 @@ import {
 } from '@phosphor-icons/react';
 
 /**
+ * Map of operator IDs to their corresponding icons
+ */
+const operatorIconMap = {
+    'equals': <EqualsIcon weight="bold" />,
+    'not-equals': <NotEqualsIcon weight="bold" />,
+    'greater-than': <GreaterThanIcon weight="bold" />,
+    'less-than': <LessThanIcon weight="bold" />,
+    'greater-than-or-equal': <CaretRightIcon weight="bold" />,
+    'less-than-or-equal': <CaretLeftIcon weight="bold" />,
+    'contains': <MagnifyingGlassIcon weight="bold" />,
+    'not-contains': <ProhibitIcon weight="bold" />,
+    'starts-with': <CaretRightIcon weight="bold" />,
+    'ends-with': <CaretLeftIcon weight="bold" />,
+    'in': <ListIcon weight="bold" />,
+    'not-in': <FunnelIcon weight="bold" />,
+} as const;
+
+/**
  * Gets the appropriate icon for an operator
  * 
  * @param operatorId - The operator ID to get the icon for
  * @returns React element containing the operator icon
  */
 export const getOperatorIcon = (operatorId: string) => {
-    switch (operatorId) {
-        case 'equals':
-            return <EqualsIcon weight="bold" />;
-        case 'not-equals':
-            return <NotEqualsIcon weight="bold" />;
-        case 'greater-than':
-            return <GreaterThanIcon weight="bold" />;
-        case 'less-than':
-            return <LessThanIcon weight="bold" />;
-        case 'greater-than-or-equal':
-            return <CaretRightIcon weight="bold" />;
-        case 'less-than-or-equal':
-            return <CaretLeftIcon weight="bold" />;
-        case 'contains':
-            return <MagnifyingGlassIcon weight="bold" />;
-        case 'not-contains':
-            return <ProhibitIcon weight="bold" />;
-        case 'starts-with':
-            return <CaretRightIcon weight="bold" />;
-        case 'ends-with':
-            return <CaretLeftIcon weight="bold" />;
-        case 'in':
-            return <ListIcon weight="bold" />;
-        case 'not-in':
-            return <FunnelIcon weight="bold" />;
-        default:
-            return <EqualsIcon weight="bold" />;
-    }
+    return operatorIconMap[operatorId as keyof typeof operatorIconMap] ?? <EqualsIcon weight="bold" />;
 };
