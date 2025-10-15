@@ -1,14 +1,15 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { Box, Button, IconButton, Typography, Paper } from '@mui/material';
 import { TextIndentIcon, TrashIcon, PlusIcon } from '@phosphor-icons/react';
 import { useMachine } from '@xstate/react';
 import { FilterList } from './FilterList';
 import { FilterEmptyState } from './FilterEmptyState';
 import type { ActiveFilter, FilterDefinition } from './types';
-import { fetchFilterDefinitions, getPrimaryFilterDefinitions } from './filterConfigService';
+import { fetchFilterDefinitions, getPrimaryFilterDefinitions, getFilterDefinition } from './filterConfigService';
 import { filterPanelMachine } from './filterPanelMachine';
 import { calculateCanApply, getFilterGroups } from './filterUtils';
-import { useOverflowDetection, useAddFilterPlacement, useFilterActions } from '../../hooks';
+import { createLinkedFilterOperations } from './linkedFilterService';
+import { useOverflowDetection, useAddFilterPlacement } from '../../hooks';
 
 interface FilterBarProps {
     onApply?: (filters: ActiveFilter[], operator: 'and' | 'or') => void;
@@ -30,19 +31,91 @@ export const FilterBar: React.FC<FilterBarProps> = ({ onApply }) => {
 
     // Use our custom hooks
     const { containerRef: scrollableRef, isOverflowing, evaluateOverflow } = useOverflowDetection();
-    const {
-        pendingLinkedFilterRef,
-        handleAddEmptyFilter,
-        handleDeleteFilter,
-        handleFilterTypeChange,
-        handleUpdateFilter,
-        handleToggleFilterEnabled,
-    } = useFilterActions({
-        send,
-        filters: state.context.filters,
-        scrollableRef,
-        evaluateOverflow
-    });
+
+    // Filter actions logic (moved from useFilterActions hook)
+    const pendingLinkedFilterRef = useRef<{ filterId: string; linkedFilterId: string } | null>(null);
+    const linkedFilterOps = createLinkedFilterOperations();
+
+    const handleAddEmptyFilter = useCallback(() => {
+        const newFilter: ActiveFilter = {
+            id: `filter-${Date.now()}`,
+            value: '',
+            enabled: true,
+        };
+
+        send({ type: 'ADD_FILTER', filter: newFilter });
+
+        // Auto-scroll to bottom after adding filter
+        setTimeout(() => {
+            const container = scrollableRef.current;
+            if (!container) return;
+
+            const shouldScroll = evaluateOverflow();
+            if (shouldScroll) {
+                container.scrollTo({
+                    top: container.scrollHeight,
+                    behavior: 'smooth'
+                });
+            }
+        }, 100);
+    }, [send, scrollableRef, evaluateOverflow]);
+
+    const handleDeleteFilter = useCallback((filterId: string) => {
+        const filter = state.context.filters.find(f => f.id === filterId);
+        if (!filter) return;
+
+        send({ type: 'DELETE_FILTER', id: filterId });
+
+        // If this filter has a linked filter, delete it too
+        if (filter.linkedFilterId) {
+            send({ type: 'DELETE_FILTER', id: filter.linkedFilterId });
+        }
+    }, [send, state.context.filters]);
+
+    const handleFilterTypeChange = useCallback((filterId: string, oldFilterId: string, newFilterId: string) => {
+        const filter = state.context.filters.find(f => f.id === filterId);
+        if (!filter) return;
+
+        const newFilterDef = getFilterDefinition(newFilterId);
+        if (!newFilterDef) return;
+
+        // Handle linked filter management
+        if (linkedFilterOps.shouldRemoveLinkedFilter(oldFilterId || null, newFilterId) && filter.linkedFilterId) {
+            send({ type: 'DELETE_FILTER', id: filter.linkedFilterId });
+        }
+        else if (linkedFilterOps.shouldCreateLinkedFilter(oldFilterId || null, newFilterId) && newFilterDef.linkedFilter) {
+            const linkedFilter = linkedFilterOps.createLinkedFilter(newFilterDef.linkedFilter.filterId);
+            if (linkedFilter) {
+                send({ type: 'ADD_FILTER', filter: linkedFilter });
+                pendingLinkedFilterRef.current = {
+                    filterId: filter.id,
+                    linkedFilterId: linkedFilter.id
+                };
+            }
+        }
+        else if (linkedFilterOps.shouldReplaceLinkedFilter(oldFilterId || null, newFilterId) && filter.linkedFilterId && newFilterDef.linkedFilter) {
+            // Delete old linked filter
+            send({ type: 'DELETE_FILTER', id: filter.linkedFilterId });
+
+            // Create new linked filter
+            const linkedFilter = linkedFilterOps.createLinkedFilter(newFilterDef.linkedFilter.filterId);
+            if (linkedFilter) {
+                send({ type: 'ADD_FILTER', filter: linkedFilter });
+                pendingLinkedFilterRef.current = {
+                    filterId: filter.id,
+                    linkedFilterId: linkedFilter.id
+                };
+            }
+        }
+    }, [send, state.context.filters, linkedFilterOps]);
+
+    const handleUpdateFilter = useCallback((id: string, filter: ActiveFilter) => {
+        send({ type: 'UPDATE_FILTER', id, filter });
+    }, [send]);
+
+    const handleToggleFilterEnabled = useCallback((id: string) => {
+        send({ type: 'TOGGLE_FILTER_ENABLED', id });
+    }, [send]);
 
     // Fetch filter configurations on mount
     useEffect(() => {
