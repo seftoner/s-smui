@@ -33,8 +33,14 @@ export const FilterBar: React.FC<FilterBarProps> = ({ onApply }) => {
     const { containerRef: scrollableRef, isOverflowing, evaluateOverflow } = useOverflowDetection();
 
     // Filter actions logic (moved from useFilterActions hook)
+    // Improvements: Added memoized lookup map and extracted helper functions for better performance and readability
     const pendingLinkedFilterRef = useRef<{ filterId: string; linkedFilterId: string } | null>(null);
     const linkedFilterOps = createLinkedFilterOperations();
+
+    // Memoized filter lookup map for O(1) performance instead of O(n) array.find()
+    const filterMap = useMemo(() => {
+        return new Map(state.context.filters.map(filter => [filter.id, filter]));
+    }, [state.context.filters]);
 
     const handleAddEmptyFilter = useCallback(() => {
         const newFilter: ActiveFilter = {
@@ -60,8 +66,25 @@ export const FilterBar: React.FC<FilterBarProps> = ({ onApply }) => {
         }, 100);
     }, [send, scrollableRef, evaluateOverflow]);
 
+    // Helper to find filter by ID using the map
+    const findFilterById = useCallback((filterId: string) => {
+        return filterMap.get(filterId);
+    }, [filterMap]);
+
+    // Helper to create and link a filter
+    const createAndLinkFilter = useCallback((parentFilterId: string, linkedFilterId: string) => {
+        const linkedFilter = linkedFilterOps.createLinkedFilter(linkedFilterId);
+        if (linkedFilter) {
+            send({ type: 'ADD_FILTER', filter: linkedFilter });
+            pendingLinkedFilterRef.current = {
+                filterId: parentFilterId,
+                linkedFilterId: linkedFilter.id
+            };
+        }
+    }, [linkedFilterOps, send]);
+
     const handleDeleteFilter = useCallback((filterId: string) => {
-        const filter = state.context.filters.find(f => f.id === filterId);
+        const filter = findFilterById(filterId);
         if (!filter) return;
 
         send({ type: 'DELETE_FILTER', id: filterId });
@@ -70,44 +93,40 @@ export const FilterBar: React.FC<FilterBarProps> = ({ onApply }) => {
         if (filter.linkedFilterId) {
             send({ type: 'DELETE_FILTER', id: filter.linkedFilterId });
         }
-    }, [send, state.context.filters]);
+    }, [send, findFilterById]);
 
     const handleFilterTypeChange = useCallback((filterId: string, oldFilterId: string, newFilterId: string) => {
-        const filter = state.context.filters.find(f => f.id === filterId);
+        const filter = findFilterById(filterId);
         if (!filter) return;
 
         const newFilterDef = getFilterDefinition(newFilterId);
         if (!newFilterDef) return;
 
-        // Handle linked filter management
-        if (linkedFilterOps.shouldRemoveLinkedFilter(oldFilterId || null, newFilterId) && filter.linkedFilterId) {
+        const oldFilterIdNormalized = oldFilterId || null;
+
+        // Strategy 1: Remove linked filter
+        if (linkedFilterOps.shouldRemoveLinkedFilter(oldFilterIdNormalized, newFilterId) && filter.linkedFilterId) {
             send({ type: 'DELETE_FILTER', id: filter.linkedFilterId });
+            return;
         }
-        else if (linkedFilterOps.shouldCreateLinkedFilter(oldFilterId || null, newFilterId) && newFilterDef.linkedFilter) {
-            const linkedFilter = linkedFilterOps.createLinkedFilter(newFilterDef.linkedFilter.filterId);
-            if (linkedFilter) {
-                send({ type: 'ADD_FILTER', filter: linkedFilter });
-                pendingLinkedFilterRef.current = {
-                    filterId: filter.id,
-                    linkedFilterId: linkedFilter.id
-                };
-            }
+
+        // Strategy 2: Create new linked filter
+        if (linkedFilterOps.shouldCreateLinkedFilter(oldFilterIdNormalized, newFilterId) && newFilterDef.linkedFilter) {
+            createAndLinkFilter(filter.id, newFilterDef.linkedFilter.filterId);
+            return;
         }
-        else if (linkedFilterOps.shouldReplaceLinkedFilter(oldFilterId || null, newFilterId) && filter.linkedFilterId && newFilterDef.linkedFilter) {
+
+        // Strategy 3: Replace existing linked filter
+        if (linkedFilterOps.shouldReplaceLinkedFilter(oldFilterIdNormalized, newFilterId) &&
+            filter.linkedFilterId &&
+            newFilterDef.linkedFilter) {
+
             // Delete old linked filter
             send({ type: 'DELETE_FILTER', id: filter.linkedFilterId });
-
             // Create new linked filter
-            const linkedFilter = linkedFilterOps.createLinkedFilter(newFilterDef.linkedFilter.filterId);
-            if (linkedFilter) {
-                send({ type: 'ADD_FILTER', filter: linkedFilter });
-                pendingLinkedFilterRef.current = {
-                    filterId: filter.id,
-                    linkedFilterId: linkedFilter.id
-                };
-            }
+            createAndLinkFilter(filter.id, newFilterDef.linkedFilter.filterId);
         }
-    }, [send, state.context.filters, linkedFilterOps]);
+    }, [findFilterById, linkedFilterOps, send, createAndLinkFilter]);
 
     const handleUpdateFilter = useCallback((id: string, filter: ActiveFilter) => {
         send({ type: 'UPDATE_FILTER', id, filter });
