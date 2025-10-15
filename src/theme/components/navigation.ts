@@ -54,7 +54,7 @@ export const navigationOverrides = {
       },
     },
   },
-  MuiMenuItem: {
+/*   MuiMenuItem: {
     styleOverrides: {
       root: {
         fontFamily: 'Noto Kufi Arabic, Helvetica, Arial, sans-serif',
@@ -71,5 +71,5 @@ export const navigationOverrides = {
         letterSpacing: '0.0121em',
       },
     },
-  },
+  }, */
 };

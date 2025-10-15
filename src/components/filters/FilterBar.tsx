@@ -112,11 +112,9 @@ export const FilterBar: React.FC<FilterBarProps> = ({ onApply }) => {
         <Paper
             elevation={0}
             sx={{
-                bgcolor: (theme) => theme.palette.background.surface_2,
+                bgcolor: 'background.surface_2',
                 borderRadius: 2,
                 overflow: 'hidden',
-                border: '1px solid',
-                borderColor: 'divider',
                 display: 'flex',
                 flexDirection: 'column',
                 height: '100%',

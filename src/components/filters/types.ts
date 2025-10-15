@@ -15,7 +15,6 @@ export type OperatorType =
 export interface OperatorConfig {
     id: OperatorType;
     label: string;
-    color: 'primary' | 'secondary' | 'success' | 'error' | 'warning' | 'info';
 }
 
 export interface FilterOption {

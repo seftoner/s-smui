@@ -7,14 +7,19 @@ import {
     TextField,
     Checkbox,
     ListItemText,
+    ListItemIcon,
     Paper,
     Tooltip,
     Typography,
 } from '@mui/material';
-import { TrashIcon, EyeSlashIcon } from '@phosphor-icons/react';
+import {
+    TrashIcon,
+    EyeSlashIcon
+} from '@phosphor-icons/react';
 import type { ActiveFilter, FilterDefinition } from './types';
 import { getFilterDefinition } from './filterConfigService';
 import { FilterSelect } from './FilterSelect';
+import { getOperatorIcon } from './operatorIcons';
 
 interface FilterInputProps {
     filter: ActiveFilter;
@@ -194,6 +199,7 @@ export const FilterInput: React.FC<FilterInputProps> = ({
                     sx={{
                         display: 'flex',
                         alignItems: 'stretch',
+                        height: 44,
                     }}
                 >
                     {/* Operator Section */}
@@ -203,22 +209,23 @@ export const FilterInput: React.FC<FilterInputProps> = ({
                         disabled={!filter.enabled || !isLinkedEnabled || isEmptyFilter}
                         displayEmpty
                         renderValue={() => (
-                            <Chip
-                                label={isEmptyFilter ? 'Operator' : (currentOperator?.label || '')}
-                                size="small"
-                                color={isEmptyFilter ? 'default' : (currentOperator?.color || 'default')}
-                                sx={{ opacity: isEmptyFilter ? 0.5 : 1 }}
-                            />
+                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                {isEmptyFilter ? (
+                                    <Typography variant="body1" color="text.disabled">
+                                        Operator
+                                    </Typography>
+                                ) : (
+                                    getOperatorIcon(currentOperator?.id || 'equals')
+                                )}
+                            </Box>
                         )}
-                        sx={{ flex: 1 }}
                     >
                         {filterDef?.operators.map((operator) => (
                             <MenuItem key={operator.id} value={operator.id}>
-                                <Chip
-                                    label={operator.label}
-                                    size="small"
-                                    color={operator.color}
-                                />
+                                <ListItemIcon>
+                                    {getOperatorIcon(operator.id)}
+                                </ListItemIcon>
+                                <ListItemText primary={operator.label} />
                             </MenuItem>
                         ))}
                     </FilterSelect>
@@ -230,7 +237,7 @@ export const FilterInput: React.FC<FilterInputProps> = ({
                     {isEmptyFilter ? (
                         <Box
                             sx={{
-                                flex: 1.6,
+                                flex: 2,
                                 display: 'flex',
                                 alignItems: 'center',
                                 px: 2,
@@ -324,7 +331,6 @@ export const FilterInput: React.FC<FilterInputProps> = ({
                                                 <Chip
                                                     label={`+${values.length - 1}`}
                                                     size="small"
-                                                    color="primary"
                                                     sx={{
                                                         height: 20,
                                                         fontSize: '0.75rem',

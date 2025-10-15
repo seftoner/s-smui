@@ -96,7 +96,6 @@ export const LinkedFilterInput: React.FC<LinkedFilterInputProps> = ({
                     sx={{
                         width: 18,
                         height: 32,
-                        flexShrink: 0,
                         mr: 2,
                         borderBottom: '1px solid',
                         borderLeft: '1px solid',

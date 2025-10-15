@@ -7,8 +7,8 @@ const filterDefinitions: FilterDefinition[] = [
         name: 'Country',
         valueType: 'single-select',
         operators: [
-            { id: 'equals', label: 'Is', color: 'primary' },
-            { id: 'not-equals', label: 'Is not', color: 'error' },
+            { id: 'equals', label: 'Is' },
+            { id: 'not-equals', label: 'Is not' },
         ],
         options: [
             { id: 'uae', label: 'UAE' },
@@ -31,8 +31,8 @@ const filterDefinitions: FilterDefinition[] = [
         name: 'Sub-Country',
         valueType: 'multi-select',
         operators: [
-            { id: 'in', label: 'In', color: 'primary' },
-            { id: 'not-in', label: 'Not in', color: 'error' },
+            { id: 'in', label: 'In' },
+            { id: 'not-in', label: 'Not in' },
         ],
         options: [
             // UAE
@@ -62,8 +62,8 @@ const filterDefinitions: FilterDefinition[] = [
         name: 'Nationality',
         valueType: 'single-select',
         operators: [
-            { id: 'equals', label: 'Is', color: 'primary' },
-            { id: 'not-equals', label: 'Is not', color: 'error' },
+            { id: 'equals', label: 'Is' },
+            { id: 'not-equals', label: 'Is not' },
         ],
         options: [
             { id: 'us', label: 'United States' },
@@ -81,12 +81,12 @@ const filterDefinitions: FilterDefinition[] = [
         name: 'Name',
         valueType: 'text',
         operators: [
-            { id: 'equals', label: 'Equals', color: 'primary' },
-            { id: 'not-equals', label: 'Not equals', color: 'error' },
-            { id: 'contains', label: 'Contains', color: 'info' },
-            { id: 'not-contains', label: 'Not contains', color: 'warning' },
-            { id: 'starts-with', label: 'Starts with', color: 'success' },
-            { id: 'ends-with', label: 'Ends with', color: 'secondary' },
+            { id: 'equals', label: 'Equals' },
+            { id: 'not-equals', label: 'Not equals' },
+            { id: 'contains', label: 'Contains' },
+            { id: 'not-contains', label: 'Not contains' },
+            { id: 'starts-with', label: 'Starts with' },
+            { id: 'ends-with', label: 'Ends with' },
         ],
         placeholder: 'Enter name...',
     },
@@ -95,8 +95,8 @@ const filterDefinitions: FilterDefinition[] = [
         name: 'Status',
         valueType: 'multi-select',
         operators: [
-            { id: 'in', label: 'In', color: 'primary' },
-            { id: 'not-in', label: 'Not in', color: 'error' },
+            { id: 'in', label: 'In' },
+            { id: 'not-in', label: 'Not in' },
         ],
         options: [
             { id: 'active', label: 'Active' },
@@ -110,10 +110,10 @@ const filterDefinitions: FilterDefinition[] = [
         name: 'Age',
         valueType: 'text',
         operators: [
-            { id: 'equals', label: 'Equals', color: 'primary' },
-            { id: 'not-equals', label: 'Not equals', color: 'error' },
-            { id: 'greater-than', label: 'Greater than', color: 'success' },
-            { id: 'less-than', label: 'Less than', color: 'warning' },
+            { id: 'equals', label: 'Equals' },
+            { id: 'not-equals', label: 'Not equals' },
+            { id: 'greater-than', label: 'Greater than' },
+            { id: 'less-than', label: 'Less than' },
         ],
         placeholder: 'Enter age...',
     },
@@ -122,8 +122,8 @@ const filterDefinitions: FilterDefinition[] = [
         name: 'Category',
         valueType: 'multi-select',
         operators: [
-            { id: 'in', label: 'In', color: 'primary' },
-            { id: 'not-in', label: 'Not in', color: 'error' },
+            { id: 'in', label: 'In' },
+            { id: 'not-in', label: 'Not in' },
         ],
         options: [
             { id: 'electronics', label: 'Electronics' },
