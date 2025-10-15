@@ -11,6 +11,7 @@ import {
     Paper,
     Tooltip,
     Typography,
+    Icon,
 } from '@mui/material';
 import {
     TrashIcon,
@@ -204,26 +205,35 @@ export const FilterInput: React.FC<FilterInputProps> = ({
                 >
                     {/* Operator Section */}
                     <FilterSelect
-                        value={filter.operator || ''}
+                        value={filter.operator || (filterDef?.operators[0]?.id || '')}
                         onChange={handleOperatorChange}
                         disabled={!filter.enabled || !isLinkedEnabled || isEmptyFilter}
                         displayEmpty
+                        sx={{
+                            minWidth: 60,
+                            maxWidth: 80,
+                            flex: '0 0 auto'
+                        }}
                         renderValue={() => (
-                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                {isEmptyFilter ? (
-                                    <Typography variant="body1" color="text.disabled">
-                                        Operator
-                                    </Typography>
-                                ) : (
-                                    getOperatorIcon(currentOperator?.id || 'equals')
-                                )}
+                            <Box sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                color: isEmptyFilter ? 'action.disabled' : 'inherit'
+                            }}>
+                                <Icon fontSize='medium'>
+                                    {isEmptyFilter
+                                        ? getOperatorIcon('equals', true)
+                                        : getOperatorIcon(currentOperator?.id || filterDef?.operators[0]?.id || 'equals')
+                                    }
+                                </Icon>
                             </Box>
                         )}
                     >
                         {filterDef?.operators.map((operator) => (
                             <MenuItem key={operator.id} value={operator.id}>
                                 <ListItemIcon>
-                                    {getOperatorIcon(operator.id)}
+                                    {getOperatorIcon(operator.id, false)}
                                 </ListItemIcon>
                                 <ListItemText primary={operator.label} />
                             </MenuItem>
