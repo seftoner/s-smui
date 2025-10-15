@@ -78,7 +78,18 @@ export const getLinkedFilter = (
  * @returns Array of primary filters
  */
 export const getPrimaryFilters = (filters: ActiveFilter[]): ActiveFilter[] => {
-    return filters.filter(filter => !isLinkedFilter(filter, filters));
+    if (!filters.length) {
+        return [];
+    }
+
+    const childIds = new Set<string>();
+    filters.forEach(filter => {
+        if (filter.linkedFilterId) {
+            childIds.add(filter.linkedFilterId);
+        }
+    });
+
+    return filters.filter(filter => !childIds.has(filter.id));
 };
 
 /**
@@ -91,8 +102,29 @@ export const getFilterGroups = (filters: ActiveFilter[]): Array<{
     primary: ActiveFilter;
     linked?: ActiveFilter;
 }> => {
-    return getPrimaryFilters(filters).map(primary => ({
-        primary,
-        linked: getLinkedFilter(primary, filters),
-    }));
+    if (!filters.length) {
+        return [];
+    }
+
+    const filterById = new Map<string, ActiveFilter>();
+    const childIds = new Set<string>();
+
+    filters.forEach(filter => {
+        filterById.set(filter.id, filter);
+        if (filter.linkedFilterId) {
+            childIds.add(filter.linkedFilterId);
+        }
+    });
+
+    const groups: Array<{ primary: ActiveFilter; linked?: ActiveFilter }> = [];
+
+    filters.forEach(filter => {
+        if (childIds.has(filter.id)) {
+            return;
+        }
+        const linked = filter.linkedFilterId ? filterById.get(filter.linkedFilterId) : undefined;
+        groups.push({ primary: filter, linked });
+    });
+
+    return groups;
 };

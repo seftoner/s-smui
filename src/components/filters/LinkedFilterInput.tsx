@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Box } from '@mui/material';
 import { FilterInput } from './FilterInput';
-import type { ActiveFilter, FilterDefinition } from './types';
+import type { ActiveFilter, FilterDefinition, FilterOption } from './types';
 import { getFilterDefinition } from './filterConfigService';
 
 interface LinkedFilterInputProps {
@@ -32,26 +32,47 @@ export const LinkedFilterInput: React.FC<LinkedFilterInputProps> = ({
         return null;
     }
 
-    // Get available options for linked filter based on primary filter value
-    const getLinkedFilterOptions = () => {
-        if (!primaryFilterDef.linkedFilter || !primaryFilter.value) {
+    const linkedOptionsById = useMemo(() => {
+        const optionEntries = linkedFilterDef.options ?? [];
+        return optionEntries.reduce<Map<string, FilterOption>>((acc, option) => {
+            acc.set(option.id, option);
+            return acc;
+        }, new Map());
+    }, [linkedFilterDef.options]);
+
+    const filteredLinkedOptions = useMemo(() => {
+        if (!primaryFilterDef.linkedFilter) {
             return [];
         }
 
-        const parentValue = primaryFilter.value as string;
-        const availableOptionIds = primaryFilterDef.linkedFilter.parentValueMap[parentValue] || [];
+        const rawParentValue = primaryFilter.value;
+        if (Array.isArray(rawParentValue) || !rawParentValue) {
+            return [];
+        }
 
-        return linkedFilterDef.options?.filter(opt => availableOptionIds.includes(opt.id)) || [];
-    };
+        const parentValue = rawParentValue as string;
+        const availableOptionIds = primaryFilterDef.linkedFilter.parentValueMap[parentValue] || [];
+        if (!availableOptionIds.length) {
+            return [];
+        }
+
+        return availableOptionIds.reduce<FilterOption[]>((acc, optionId) => {
+            const option = linkedOptionsById.get(optionId);
+            if (option) {
+                acc.push(option);
+            }
+            return acc;
+        }, []);
+    }, [primaryFilter.value, primaryFilterDef.linkedFilter, linkedOptionsById]);
 
     // Check if linked filter should be enabled (primary has value selected)
     const isLinkedFilterEnabled = Boolean(primaryFilter.value && primaryFilter.enabled);
 
     // Create modified linked filter definition with filtered options
-    const modifiedLinkedFilterDef: FilterDefinition = {
+    const modifiedLinkedFilterDef: FilterDefinition = useMemo(() => ({
         ...linkedFilterDef,
-        options: getLinkedFilterOptions(),
-    };
+        options: filteredLinkedOptions,
+    }), [filteredLinkedOptions, linkedFilterDef]);
 
     // Handle primary filter change - reset linked filter value if primary changes
     const handlePrimaryChange = (updatedPrimary: ActiveFilter) => {
