@@ -22,9 +22,6 @@ export interface PromptInputContext {
   value: string;
   error: boolean;
   helperText: string;
-  activeChipId: string | null; // ID of the currently active predefined prompt chip
-  attachedFiles: AttachedFile[]; // Array of attached files
-  isDragOver: boolean; // Whether files are being dragged over the component
 }
 
 // Machine events
@@ -38,13 +35,6 @@ export type PromptInputEvent =
   | { type: 'SEND_ERROR'; message?: string }
   | { type: 'SET_VALUE'; value: string }
   | { type: 'SET_ERROR'; error: boolean; helperText?: string }
-  | { type: 'SELECT_CHIP'; chipId: string }
-  | { type: 'DESELECT_CHIP' }
-  | { type: 'ADD_FILES'; files: AttachedFile[] }
-  | { type: 'REMOVE_FILE'; fileId: string }
-  | { type: 'UPDATE_FILE_PROGRESS'; fileId: string; progress: number }
-  | { type: 'FILE_UPLOAD_SUCCESS'; fileId: string; uploadedUrl?: string }
-  | { type: 'FILE_UPLOAD_ERROR'; fileId: string; error: string }
   | { type: 'DRAG_ENTER' }
   | { type: 'DRAG_LEAVE' };
 
@@ -53,13 +43,13 @@ export interface PromptInputProps {
   value?: string;
   onChange: (value: string) => void;
   onSend: () => void | Promise<void>;
-  onChipChange?: (activeChipId: string | null) => void; // Callback when active chip changes
-  onFilesChange?: (files: AttachedFile[]) => void; // Callback when files change
   disabled?: boolean;
   placeholder?: string;
-  suggestions?: SuggestionChip[]; // Optional array of suggestion chips - when provided, shows landing mode
   error?: boolean;
   helperText?: string;
+  disableSend?: boolean;
+  layout?: PromptInputLayout;
+  slots?: PromptInputSlots;
 }
 
 // Suggestion chip interface
@@ -69,6 +59,32 @@ export interface SuggestionChip {
   icon: React.ReactElement;
   systemPrompt?: string; // Optional predefined system prompt
 }
+
+export type PromptInputSlotRenderer = ((state: PromptInputSlotState) => React.ReactNode) | React.ReactNode;
+
+export interface PromptInputSlots {
+  top?: PromptInputSlotRenderer;
+  inlineStart?: PromptInputSlotRenderer;
+  inlineEnd?: PromptInputSlotRenderer;
+  stackedStart?: PromptInputSlotRenderer;
+  stackedEnd?: PromptInputSlotRenderer;
+  footer?: PromptInputSlotRenderer;
+}
+
+export interface PromptInputSlotState {
+  layout: {
+    variant: 'compact' | 'expanded';
+    isStacked: boolean;
+  };
+  disabled: boolean;
+  value: string;
+  isFocused: boolean;
+  canSend: boolean;
+  focusInput: () => void;
+  send: () => void;
+}
+
+export type PromptInputLayout = 'auto' | 'compact' | 'expanded';
 
 // File validation constants
 export const FILE_UPLOAD_CONSTANTS = {

@@ -1,6 +1,5 @@
 import { assign, setup } from 'xstate';
-import type { PromptInputContext, AttachedFile } from './types';
-import { FILE_UPLOAD_CONSTANTS } from './types';
+import type { PromptInputContext } from './types';
 
 /**
  * XState machine for managing PromptInput component state using modern v5 setup pattern
@@ -29,58 +28,6 @@ export const promptInputMachine = setup({
       error: ({ event }) => event.error,
       helperText: ({ event }) => event.helperText || '',
     }),
-    selectChip: assign({  
-      activeChipId: ({ event, context }) => 
-        context.activeChipId === event.chipId ? null : event.chipId,
-    }),
-    deselectChip: assign({
-      activeChipId: () => null,
-    }),
-    addFiles: assign({
-      attachedFiles: ({ event, context }) => {
-        // Check if adding files would exceed the limit
-        if (context.attachedFiles.length + event.files.length > FILE_UPLOAD_CONSTANTS.MAX_FILES) {
-          return context.attachedFiles; // Don't add files if it would exceed limit
-        }
-        
-        // Create attached files (validation already done in component)
-        const newFiles = event.files.map((file: AttachedFile) => ({
-          ...file,
-          uploadStatus: 'uploading' as const,
-          uploadProgress: 0,
-        }));
-        
-        return [...context.attachedFiles, ...newFiles];
-      },
-    }),
-    removeFile: assign({
-      attachedFiles: ({ event, context }) => 
-        context.attachedFiles.filter((file: AttachedFile) => file.id !== event.fileId),
-    }),
-    updateFileProgress: assign({
-      attachedFiles: ({ event, context }) => 
-        context.attachedFiles.map((file: AttachedFile) => 
-          file.id === event.fileId 
-            ? { ...file, uploadProgress: event.progress }
-            : file
-        ),
-    }),
-    fileUploadSuccess: assign({
-      attachedFiles: ({ event, context }) => 
-        context.attachedFiles.map((file: AttachedFile) => 
-          file.id === event.fileId 
-            ? { ...file, uploadStatus: 'completed', uploadProgress: 100, uploadedUrl: event.uploadedUrl }
-            : file
-        ),
-    }),
-    fileUploadError: assign({
-      attachedFiles: ({ event, context }) => 
-        context.attachedFiles.map((file: AttachedFile) => 
-          file.id === event.fileId 
-            ? { ...file, uploadStatus: 'error', error: event.error }
-            : file
-        ),
-    }),
     setSendError: assign({
       error: () => true,
       helperText: ({ event }) => event.message || 'Failed to send message',
@@ -93,22 +40,12 @@ export const promptInputMachine = setup({
     value: '',
     error: false,
     helperText: '',
-    activeChipId: null,
-    attachedFiles: [],
-    isDragOver: false,
   }),
   
   // Define shared actions that are available in all states
   on: {
     SET_VALUE: { actions: 'setValue' },
     SET_ERROR: { actions: 'setError' },
-    SELECT_CHIP: { actions: 'selectChip' },
-    DESELECT_CHIP: { actions: 'deselectChip' },
-    ADD_FILES: { actions: 'addFiles' },
-    REMOVE_FILE: { actions: 'removeFile' },
-    UPDATE_FILE_PROGRESS: { actions: 'updateFileProgress' },
-    FILE_UPLOAD_SUCCESS: { actions: 'fileUploadSuccess' },
-    FILE_UPLOAD_ERROR: { actions: 'fileUploadError' },
   },
   
   states: {
@@ -146,8 +83,6 @@ export const promptInputMachine = setup({
           target: 'idle',
           actions: 'setSendError',
         },
-        // Only allow chip deselection during sending, not selection
-        SELECT_CHIP: undefined, // Disable chip selection during sending
       },
     },
   },

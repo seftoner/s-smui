@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
-import {
-    Box,
-} from '@mui/material';
-import { PromptInput, WelcomeSection, ChatHistorySidebar } from '../../components/ai-chat';
+import { Box } from '@mui/material';
+import { WelcomeSection, ChatHistorySidebar } from '../../components/ai-chat';
 import { getSuggestions } from '../../services/suggestionsService';
+import { AIChatPromptInput } from './AIChatPromptInput';
 
 export const AIChatApp: React.FC = () => {
     const [message, setMessage] = useState('');
@@ -72,11 +71,10 @@ export const AIChatApp: React.FC = () => {
                     }}
                 >
                     <WelcomeSection />
-                    <PromptInput
+                    <AIChatPromptInput
                         value={message}
                         onChange={setMessage}
                         onSend={handleSend}
-                        disabled={false}
                         suggestions={suggestions}
                     />
                 </Box>

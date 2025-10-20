@@ -1,97 +1,107 @@
 import type { } from '@mui/material/themeCssVarsAugmentation';
-import React, { useRef } from 'react';
+import React from 'react';
 import {
     Box,
     InputBase,
-    IconButton,
     Paper,
     Typography,
-    Chip,
     useTheme,
 } from '@mui/material';
-import type { IconButtonProps } from '@mui/material';
-import {
-    PaperclipIcon,
-    ArrowUpIcon,
-} from '@phosphor-icons/react';
 import { useMachine } from '@xstate/react';
-import type { ActorRefFrom } from 'xstate';
-import { FileAttachmentsBar } from './FileAttachmentsBar';
 import { promptInputMachine } from './promptInputMachine';
-import type { PromptInputProps, SuggestionChip } from './types';
-import { FILE_UPLOAD_CONSTANTS } from './types';
-import { fileListToArray } from './fileUploadUtils';
-import { useTextareaIsMultiline, useFileAttachments } from '../../hooks';
-import type { SnapshotFrom } from 'xstate';
+import type {
+    PromptInputLayout,
+    PromptInputProps,
+    PromptInputSlotRenderer,
+    PromptInputSlotState,
+    PromptInputSlots,
+} from './types';
+import { useTextareaIsMultiline } from '../../hooks';
 
-type PromptInputSnapshot = SnapshotFrom<typeof promptInputMachine>;
-type PromptInputSend = ActorRefFrom<typeof promptInputMachine>['send'];
+const isClassComponent = (value: unknown): value is React.ComponentClass<PromptInputSlotState> =>
+    typeof value === 'function' && !!(value as React.ComponentClass).prototype?.isReactComponent;
 
-// Simple send button with arrow icon and hover effect
-const SendButton: React.FC<IconButtonProps> = (props) => (
-    <IconButton
-        size="small"
-        color="primary"
-        sx={{
-            transition: 'all 0.2s ease-in-out',
-            '&:hover': {
-                transform: props.disabled ? 'none' : 'scale(1.05)',
-            },
-        }}
-        {...props}
-    >
-        <ArrowUpIcon />
-    </IconButton>
-);
+const renderSlot = (slot: PromptInputSlotRenderer | undefined, state: PromptInputSlotState) => {
+    if (!slot) {
+        return null;
+    }
 
-// Props interfaces for better organization
+    if (React.isValidElement(slot)) {
+        return slot;
+    }
+
+    if (isClassComponent(slot)) {
+        const Component = slot as React.ComponentType<PromptInputSlotState>;
+        return <Component {...state} />;
+    }
+
+    if (typeof slot === 'function') {
+        return (slot as (state: PromptInputSlotState) => React.ReactNode)(state);
+    }
+
+    return slot ?? null;
+};
+
 interface InputRowProps {
-    state: PromptInputSnapshot;
-    send: PromptInputSend;
+    value: string;
     placeholder: string;
     onChange: (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
     onKeyPress: (event: React.KeyboardEvent) => void;
-    onAddFiles: () => void;
-    onSend: () => void;
+    onFocus: () => void;
+    onBlur: () => void;
     textFieldRef: React.RefObject<HTMLDivElement | null>;
+    textareaRef: React.RefObject<HTMLTextAreaElement | null>;
     disabled: boolean;
-    canSendMessage: boolean;
     showCompactLayout: boolean;
+    shouldUseVerticalLayout: boolean;
+    slots: Pick<PromptInputSlots, 'inlineStart' | 'inlineEnd' | 'stackedStart' | 'stackedEnd'>;
+    slotState: PromptInputSlotState;
 }
 
-// Main input row component
 const InputRow: React.FC<InputRowProps> = ({
-    state,
-    send,
+    value,
     placeholder,
     onChange,
     onKeyPress,
-    onAddFiles,
-    onSend,
+    onFocus,
+    onBlur,
     textFieldRef,
+    textareaRef,
     disabled,
-    canSendMessage,
     showCompactLayout,
+    shouldUseVerticalLayout,
+    slots,
+    slotState,
 }) => {
-    const { ref: textareaRef, isMultiline } = useTextareaIsMultiline<HTMLTextAreaElement>();
-    const shouldUseVerticalLayout = showCompactLayout && isMultiline;
+    const inlineStart = showCompactLayout && !shouldUseVerticalLayout
+        ? renderSlot(slots.inlineStart, slotState)
+        : null;
+
+    const inlineEnd = showCompactLayout && !shouldUseVerticalLayout
+        ? renderSlot(slots.inlineEnd, slotState)
+        : null;
+
+    const stackedStartRenderer = slots.stackedStart ?? slots.inlineStart;
+    const stackedEndRenderer = slots.stackedEnd ?? slots.inlineEnd;
+    const stackedStart = showCompactLayout && shouldUseVerticalLayout
+        ? renderSlot(stackedStartRenderer, slotState)
+        : null;
+    const stackedEnd = showCompactLayout && shouldUseVerticalLayout
+        ? renderSlot(stackedEndRenderer, slotState)
+        : null;
+
+    const hasStackedContent = Boolean(stackedStart) || Boolean(stackedEnd);
 
     return (
         <Box sx={{
             display: 'flex',
-            flexDirection: shouldUseVerticalLayout ? 'column' : 'row',
-            alignItems: shouldUseVerticalLayout ? 'stretch' : 'center',
+            flexDirection: showCompactLayout && shouldUseVerticalLayout ? 'column' : 'row',
+            alignItems: showCompactLayout && shouldUseVerticalLayout ? 'stretch' : 'center',
             mb: showCompactLayout ? 0 : 2,
             ml: showCompactLayout ? 0 : 2,
         }}>
-            {/* File attachment button for horizontal layout */}
-            {showCompactLayout && !shouldUseVerticalLayout && (
-                <IconButton onClick={onAddFiles} size="small">
-                    <PaperclipIcon />
-                </IconButton>
-            )}
+            {inlineStart}
 
-            {/* Text Field - always present, same component */}
             <InputBase
                 ref={textFieldRef}
                 inputRef={textareaRef}
@@ -99,141 +109,72 @@ const InputRow: React.FC<InputRowProps> = ({
                 multiline
                 maxRows={6}
                 placeholder={placeholder}
-                value={state.context.value}
+                value={value}
                 onChange={onChange}
                 onKeyDown={onKeyPress}
-                onFocus={() => send({ type: 'FOCUS' })}
-                onBlur={() => send({ type: 'BLUR' })}
+                onFocus={onFocus}
+                onBlur={onBlur}
                 disabled={disabled}
             />
 
-            {/* Send button for horizontal layout */}
-            {showCompactLayout && !shouldUseVerticalLayout && (
-                <SendButton onClick={onSend} disabled={!canSendMessage} />
-            )}
+            {inlineEnd}
 
-            {/* Buttons Container for vertical layout only */}
-            {showCompactLayout && shouldUseVerticalLayout && (
+            {showCompactLayout && shouldUseVerticalLayout && hasStackedContent && (
                 <Box sx={{
                     display: 'flex',
                     justifyContent: 'space-between',
                     alignItems: 'center',
                     width: '100%',
                     transition: 'all 0.3s ease-in-out',
+                    mt: 1,
                 }}>
-                    <IconButton onClick={onAddFiles} size="small">
-                        <PaperclipIcon />
-                    </IconButton>
-                    <SendButton onClick={onSend} disabled={!canSendMessage} />
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        {stackedStart}
+                    </Box>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        {stackedEnd}
+                    </Box>
                 </Box>
             )}
         </Box>
     );
 };
 
-// Suggestions footer props interface
-interface SuggestionsFooterProps {
-    suggestions: SuggestionChip[];
-    activeChipId: string | null;
-    onAddFiles: () => void;
-    onSuggestionClick: (chipId: string) => void;
-    canSendMessage: boolean;
-    onSend: () => void;
-}
-
-// Suggestions footer - shows suggestion chips and controls
-const SuggestionsFooter: React.FC<SuggestionsFooterProps> = ({
-    suggestions,
-    activeChipId,
-    onAddFiles,
-    onSuggestionClick,
-    canSendMessage,
-    onSend
-}) => {
-    return (
-        <Box sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: 2
-        }}>
-            {/* Left side: File button + Suggestion Chips */}
-            <Box sx={{
-                display: 'flex',
-                gap: 2,
-                flex: 1,
-                justifyContent: 'flex-start',
-                flexWrap: 'wrap',
-                alignItems: 'center'
-            }}>
-                <IconButton onClick={onAddFiles} size="small">
-                    <PaperclipIcon />
-                </IconButton>
-
-                {/* Suggestion chips */}
-                {suggestions.map((suggestion) => {
-                    const isActive = activeChipId === suggestion.id;
-                    return (
-                        <Chip
-                            key={suggestion.id}
-                            label={suggestion.label}
-                            icon={suggestion.icon}
-                            variant={isActive ? "selected" : "outlined"}
-                            size="small"
-                            onClick={() => onSuggestionClick(suggestion.id)}
-                        />
-                    );
-                })}
-            </Box>
-
-            {/* Right side: Send Button */}
-            <SendButton onClick={onSend} disabled={!canSendMessage} />
-        </Box>
-    );
-};
-
-const isPromise = (value: unknown): value is Promise<unknown> =>
-    !!value && typeof value === 'object' && 'then' in value && typeof (value as { then?: unknown }).then === 'function';
-
 export const PromptInput: React.FC<PromptInputProps> = ({
     value: externalValue,
     onChange,
     onSend,
-    onChipChange,
-    onFilesChange,
     disabled = false,
     placeholder = "Ask me anything...",
-    suggestions,
     error: externalError = false,
     helperText: externalHelperText,
+    layout = 'auto',
+    slots,
+    disableSend = false,
 }) => {
     const theme = useTheme();
-    const textFieldRef = useRef<HTMLDivElement>(null);
-    const fileInputRef = useRef<HTMLInputElement>(null);
+    const textFieldRef = React.useRef<HTMLDivElement>(null);
+    const { ref: textareaRef, isMultiline } = useTextareaIsMultiline<HTMLTextAreaElement>();
 
-    // Check if we should show suggestions footer
-    const hasSuggestions = Boolean(suggestions && suggestions.length > 0);
+    const slotsConfig = React.useMemo<PromptInputSlots>(() => ({
+        inlineStart: slots?.inlineStart,
+        inlineEnd: slots?.inlineEnd,
+        stackedStart: slots?.stackedStart,
+        stackedEnd: slots?.stackedEnd,
+        top: slots?.top,
+        footer: slots?.footer,
+    }), [slots]);
 
-    // Use the file attachments hook
-    const {
-        attachedFiles,
-        addFiles,
-        removeFile,
-        hasUploadingFiles,
-        hasFailedFiles,
-    } = useFileAttachments();
-
-    // Initialize the state machine
     const [state, send] = useMachine(promptInputMachine);
+    const isFocused = state.matches('focused') || state.matches('focusedAndHovered');
+    const isHovered = state.matches('hovered') || state.matches('focusedAndHovered');
 
-    // Sync external value changes with the machine
     React.useEffect(() => {
         if (externalValue !== undefined && externalValue !== state.context.value) {
             send({ type: 'SET_VALUE', value: externalValue });
         }
     }, [externalValue, state.context.value, send]);
 
-    // Sync external error state with the machine
     React.useEffect(() => {
         const normalizedHelperText = externalHelperText ?? '';
         if (externalError !== state.context.error || normalizedHelperText !== state.context.helperText) {
@@ -245,49 +186,16 @@ export const PromptInput: React.FC<PromptInputProps> = ({
         }
     }, [externalError, externalHelperText, state.context.error, state.context.helperText, send]);
 
-    // Notify parent when active chip changes
-    React.useEffect(() => {
-        if (onChipChange) {
-            onChipChange(state.context.activeChipId);
-        }
-    }, [state.context.activeChipId, onChipChange]);
-
-    // Expose file attachments to parent when they change
-    React.useEffect(() => {
-        if (onFilesChange) {
-            onFilesChange(attachedFiles);
-        }
-    }, [attachedFiles, onFilesChange]);
-
     const handleInputChange = React.useCallback((event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const newValue = event.target.value;
         send({ type: 'SET_VALUE', value: newValue });
         onChange(newValue);
     }, [send, onChange]);
 
-    // File handling functions
-    const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
-        const files = event.target.files;
-        if (files && files.length > 0) {
-            const fileArray = fileListToArray(files);
-            await addFiles(fileArray);
-        }
-
-        // Reset file input
-        event.target.value = '';
-    };
-
-    const handleAddFilesClick = React.useCallback(() => {
-        fileInputRef.current?.click();
-    }, [fileInputRef]);
-
-    // Helper function to check if send is allowed
     const canSend = React.useCallback(() => {
         const hasText = state.context.value.trim().length > 0;
-        return hasText && !hasUploadingFiles && !hasFailedFiles && !disabled;
-    }, [state.context.value, hasUploadingFiles, hasFailedFiles, disabled]);
-
-    const canSendMessage = canSend();
+        return hasText && !disabled && !disableSend;
+    }, [state.context.value, disabled, disableSend]);
 
     const handleSend = React.useCallback(() => {
         if (!canSend()) {
@@ -298,8 +206,8 @@ export const PromptInput: React.FC<PromptInputProps> = ({
 
         try {
             const result = onSend();
-            if (isPromise(result)) {
-                result
+            if (result && typeof (result as Promise<unknown>).then === 'function') {
+                (result as Promise<unknown>)
                     .then(() => send({ type: 'SEND_SUCCESS' }))
                     .catch((error) => {
                         const message = error instanceof Error ? error.message : undefined;
@@ -314,14 +222,6 @@ export const PromptInput: React.FC<PromptInputProps> = ({
         }
     }, [canSend, onSend, send]);
 
-    const handleSuggestionClick = React.useCallback((chipId: string) => {
-        send({ type: 'SELECT_CHIP', chipId });
-
-        // Focus the input after clicking a suggestion
-        const input = textFieldRef.current?.querySelector<HTMLTextAreaElement | HTMLInputElement>('textarea, input');
-        input?.focus();
-    }, [send]);
-
     const handleKeyPress = React.useCallback((event: React.KeyboardEvent) => {
         if (event.key === 'Enter' && !event.shiftKey) {
             event.preventDefault();
@@ -329,81 +229,109 @@ export const PromptInput: React.FC<PromptInputProps> = ({
         }
     }, [handleSend]);
 
-    const getBorderColor = () => {
-        if (state.context.error) return theme.vars.palette.error.main;
-        if (state.matches('focused') || state.matches('focusedAndHovered')) return theme.vars.palette.primary.main;
-        if (state.matches('hovered') || state.matches('focusedAndHovered')) return theme.vars.palette.primary.light;
-        return theme.vars.palette.divider;
-    };
+    const focusInput = React.useCallback(() => {
+        textareaRef.current?.focus();
+    }, []);
 
-    const isFocused = state.matches('focused') || state.matches('focusedAndHovered');
+    const resolvedLayout: PromptInputLayout = React.useMemo(() => {
+        if (layout === 'compact') {
+            return 'compact';
+        }
+
+        if (layout === 'expanded') {
+            return 'expanded';
+        }
+
+        return slotsConfig.footer ? 'expanded' : 'compact';
+    }, [layout, slotsConfig.footer]);
+
+    const showCompactLayout = resolvedLayout === 'compact';
+    const shouldUseVerticalLayout = showCompactLayout && isMultiline;
+    const canSendMessage = canSend();
+
+    const onFocus = React.useCallback(() => send({ type: 'FOCUS' }), [send]);
+    const onBlur = React.useCallback(() => send({ type: 'BLUR' }), [send]);
+
+    const slotState = React.useMemo<PromptInputSlotState>(() => ({
+        layout: {
+            variant: resolvedLayout === 'compact' ? 'compact' : 'expanded',
+            isStacked: shouldUseVerticalLayout,
+        },
+        disabled,
+        value: state.context.value,
+        isFocused,
+        canSend: canSendMessage,
+        focusInput,
+        send: handleSend,
+    }), [resolvedLayout, shouldUseVerticalLayout, disabled, state.context.value, isFocused, canSendMessage, focusInput, handleSend]);
+
+    const topContent = React.useMemo(
+        () => renderSlot(slotsConfig.top, slotState),
+        [slotsConfig.top, slotState]
+    );
+
+    const footerContent = React.useMemo(
+        () => renderSlot(slotsConfig.footer, slotState),
+        [slotsConfig.footer, slotState]
+    );
+
+    const onMouseEnter = React.useCallback(() => send({ type: 'HOVER' }), [send]);
+    const onMouseLeave = React.useCallback(() => send({ type: 'UNHOVER' }), [send]);
+    const borderColor = state.context.error
+        ? theme.vars.palette.error.main
+        : isFocused
+            ? theme.vars.palette.primary.main
+            : isHovered
+                ? theme.vars.palette.primary.light
+                : theme.vars.palette.divider;
 
     return (
         <Box>
-            {/* Hidden File Input */}
-            <input
-                ref={fileInputRef}
-                type="file"
-                multiple
-                accept={FILE_UPLOAD_CONSTANTS.ALLOWED_TYPES.join(',')}
-                style={{ display: 'none' }}
-                onChange={handleFileSelect}
-            />
-
-            {/* Main Input Container */}
             <Paper
                 elevation={0}
-                onMouseEnter={() => send({ type: 'HOVER' })}
-                onMouseLeave={() => send({ type: 'UNHOVER' })}
+                onMouseEnter={onMouseEnter}
+                onMouseLeave={onMouseLeave}
                 sx={{
-                    borderRadius: 8, // 24px based on cornerRadius-4
-                    border: `1px solid ${getBorderColor()}`,
+                    borderRadius: 8,
+                    border: `1px solid ${borderColor}`,
                     overflow: 'hidden',
                     boxShadow: theme.customShadows.promptInput,
                     position: 'relative',
                     '&:hover': {
-                        borderColor: !isFocused ? theme.vars.palette.primary.light : theme.vars.palette.primary.main,
+                        borderColor: !isFocused
+                            ? theme.vars.palette.primary.light
+                            : theme.vars.palette.primary.main,
                     },
                 }}
             >
                 <Box sx={{ p: 2 }}>
-                    {/* File Attachments Area */}
-                    <FileAttachmentsBar
-                        files={attachedFiles}
-                        onRemoveFile={removeFile}
-                    />
+                    {topContent}
 
-                    {/* Main Input Row */}
                     <InputRow
-                        state={state}
-                        send={send}
+                        value={state.context.value}
                         placeholder={placeholder}
                         onChange={handleInputChange}
                         onKeyPress={handleKeyPress}
-                        onAddFiles={handleAddFilesClick}
-                        onSend={handleSend}
+                        onFocus={onFocus}
+                        onBlur={onBlur}
                         textFieldRef={textFieldRef}
+                        textareaRef={textareaRef}
                         disabled={disabled}
-                        canSendMessage={canSendMessage}
-                        showCompactLayout={!hasSuggestions}
+                        showCompactLayout={showCompactLayout}
+                        shouldUseVerticalLayout={shouldUseVerticalLayout}
+                        slots={{
+                            inlineStart: slotsConfig.inlineStart,
+                            inlineEnd: slotsConfig.inlineEnd,
+                            stackedStart: slotsConfig.stackedStart,
+                            stackedEnd: slotsConfig.stackedEnd,
+                        }}
+                        slotState={slotState}
                     />
 
-
-                    {/* Suggestions Footer - only shown when suggestions are provided */}
-                    {hasSuggestions && suggestions && (
-                        <SuggestionsFooter
-                            suggestions={suggestions}
-                            activeChipId={state.context.activeChipId}
-                            onAddFiles={handleAddFilesClick}
-                            onSuggestionClick={handleSuggestionClick}
-                            canSendMessage={canSendMessage}
-                            onSend={handleSend}
-                        />
-                    )}
+                    {resolvedLayout === 'expanded' && footerContent}
                 </Box>
             </Paper>
 
-            {/* Helper Text */}
             {state.context.helperText && (
                 <Typography
                     variant="caption"
@@ -411,7 +339,7 @@ export const PromptInput: React.FC<PromptInputProps> = ({
                     sx={{
                         display: 'block',
                         mt: 0.5,
-                        textAlign: 'right', // RTL
+                        textAlign: 'right',
                         px: 1
                     }}
                 >
