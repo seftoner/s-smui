@@ -8,8 +8,6 @@ export const buttonOverrides = {
       root: {
         borderRadius: 8, // cornerRadius-2
         textTransform: 'none' as const,
-        fontFamily: 'Noto Kufi Arabic, Helvetica, Arial, sans-serif',
-        
         fontSize: 14,
         lineHeight: 1.714,
       },
