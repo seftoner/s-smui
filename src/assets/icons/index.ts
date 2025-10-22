@@ -17,3 +17,6 @@ export { default as FileIcon } from './File.svg';
 export { default as PDFIcon } from './PDF.svg';
 export { default as SDocumentIcon } from './S-Document.svg';
 export { default as SpreadsheetIcon } from './Spreadsheet.svg';
+
+// Operator icons
+export * from './operators';

@@ -17,7 +17,6 @@ const StyledSelect = styled(Select)<SelectProps>(({ theme }) => ({
         paddingRight: theme.spacing(4), // Space for icon
         display: 'flex',
         alignItems: 'center',
-        // minHeight: 44,
         '&:focus': {
             backgroundColor: 'transparent',
         },
@@ -33,11 +32,11 @@ const StyledSelect = styled(Select)<SelectProps>(({ theme }) => ({
     // Icon styling for Phosphor icon
     '& .MuiSelect-icon': {
         right: theme.spacing(1),
-        color: theme.palette.action.active,
+        color: theme.vars.palette.action.active,
         fontSize: '1rem', // 16px for Phosphor icons
     },
     '&.Mui-disabled .MuiSelect-icon': {
-        color: theme.palette.action.disabled,
+        color: theme.vars.palette.action.disabled,
     },
 }));
 

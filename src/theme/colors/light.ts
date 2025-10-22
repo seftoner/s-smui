@@ -62,17 +62,17 @@ export const lightPalette = {
   divider: '#1b1d211f',
     
   action: {
-    active: '#0e0f1299',
-    hover: '#0e0f120d',
-    hoverOpacity: 0.08,
-    selected: '#0e0f1226',
+    active: 'rgba(14, 15, 18, 0.6)',
+    activatedOpacity: 0.60,
+    hover: 'rgba(14, 15, 18, 0.05)',
+    hoverOpacity: 0.05,
+    selected: 'rgba(14, 15, 18, 0.15)',
     selectedOpacity: 0.15,
-    disabled: '#0e0f1261',
+    disabled: 'rgba(14, 15, 18, 0.38)',
     disabledOpacity: 0.38,
     disabledBackground: '#0e0f121a',
-    focus: '#0e0f1233',
+    focus: 'rgba(14, 15, 18, 0.2)',
     focusOpacity: 0.20,
-    activatedOpacity: 0.60,
   },
   
   // Component-specific colors from Figma tokens

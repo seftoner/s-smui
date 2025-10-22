@@ -84,7 +84,6 @@ const filterDefinitions: FilterDefinition[] = [
             { id: 'equals', label: 'Equals' },
             { id: 'not-equals', label: 'Not equals' },
             { id: 'contains', label: 'Contains' },
-            { id: 'not-contains', label: 'Not contains' },
             { id: 'starts-with', label: 'Starts with' },
             { id: 'ends-with', label: 'Ends with' },
         ],
