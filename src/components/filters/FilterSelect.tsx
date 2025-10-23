@@ -31,7 +31,7 @@ const StyledSelect = styled(Select)<SelectProps>(({ theme }) => ({
     },
     // Icon styling for Phosphor icon
     '& .MuiSelect-icon': {
-        right: theme.spacing(1),
+        right: theme.spacing(3),
         color: theme.vars.palette.action.active,
         fontSize: '1rem', // 16px for Phosphor icons
     },
