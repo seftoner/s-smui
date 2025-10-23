@@ -1,5 +1,6 @@
 import { Select, styled } from '@mui/material';
 import type { SelectProps } from '@mui/material';
+import { height, width } from '@mui/system';
 import { CaretDownIcon } from '@phosphor-icons/react';
 
 /**
@@ -33,7 +34,8 @@ const StyledSelect = styled(Select)<SelectProps>(({ theme }) => ({
     '& .MuiSelect-icon': {
         right: theme.spacing(3),
         color: theme.vars.palette.action.active,
-        fontSize: '1rem', // 16px for Phosphor icons
+        height: '20px',
+        width: '20px',
     },
     '&.Mui-disabled .MuiSelect-icon': {
         color: theme.vars.palette.action.disabled,
