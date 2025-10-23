@@ -75,6 +75,7 @@ export const PlaygroundApp: React.FC = () => {
     const [stepperValue, setStepperValue] = useState(1);
     const [dialogOpen, setDialogOpen] = useState(false);
     const [snackbarOpen, setSnackbarOpen] = useState(false);
+    const [selectedListItem, setSelectedListItem] = useState('home');
     const { mode, setMode } = useThemeMode();
     const isDarkMode = mode === 'dark';
 
@@ -402,19 +403,28 @@ export const PlaygroundApp: React.FC = () => {
                     <Box sx={{ flex: '1 1 500px', minWidth: '300px' }}>
                         <ComponentSection title="Lists">
                             <List>
-                                <ListItemButton>
+                                <ListItemButton
+                                    selected={selectedListItem === 'home'}
+                                    onClick={() => setSelectedListItem('home')}
+                                >
                                     <ListItemIcon>
                                         <Home />
                                     </ListItemIcon>
                                     <ListItemText primary="Home" secondary="Navigate to home page" />
                                 </ListItemButton>
-                                <ListItemButton>
+                                <ListItemButton
+                                    selected={selectedListItem === 'profile'}
+                                    onClick={() => setSelectedListItem('profile')}
+                                >
                                     <ListItemIcon>
                                         <Person />
                                     </ListItemIcon>
                                     <ListItemText primary="Profile" secondary="View profile settings" />
                                 </ListItemButton>
-                                <ListItemButton>
+                                <ListItemButton
+                                    selected={selectedListItem === 'settings'}
+                                    onClick={() => setSelectedListItem('settings')}
+                                >
                                     <ListItemIcon>
                                         <Settings />
                                     </ListItemIcon>

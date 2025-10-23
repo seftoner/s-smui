@@ -57,16 +57,16 @@ export const darkPalette = {
   divider: '#ffffff1f',
   action: {
     active: 'rgba(255, 255, 255, 0.6)',
-    activatedOpacity: 0.60,
-    hover: 'rgba(255, 255, 255, 0.05)',
-    hoverOpacity: 0.05,
+    activatedOpacity: 0.24,
+    hover: 'rgba(255, 255, 255, 0.08)',
+    hoverOpacity: 0.08,
     selected: 'rgba(255, 255, 255, 0.15)',
-    selectedOpacity: 0.15,
+    selectedOpacity: 0.16,
     disabled: 'rgba(255, 255, 255, 0.38)',
     disabledOpacity: 0.38,
     disabledBackground: 'rgba(255, 255, 255, 0.1)',
     focus: 'rgba(255, 255, 255, 0.2)',
-    focusOpacity: 0.20,
+    focusOpacity: 0.15,
   },
   
   // Component-specific colors from Figma tokens - Dark Mode

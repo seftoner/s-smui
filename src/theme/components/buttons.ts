@@ -36,13 +36,6 @@ export const buttonOverrides = {
           boxShadow: '0px 2px 4px rgba(59, 107, 246, 0.12)',
         },
       },
-      outlined: ({ theme }: { theme: any }) => ({
-        borderColor: `rgba(${theme.vars.palette.primary.mainChannel} / 0.5)`,
-        '&:hover': {
-          borderColor: theme.vars.palette.primary.main,
-          backgroundColor: `rgba(${theme.vars.palette.primary.mainChannel} / 0.06)`,
-        },
-      }),
     },
   },
   MuiIconButton: {
@@ -71,9 +64,6 @@ export const buttonOverrides = {
         padding: 12, // Default padding for large
         '&:hover': {
           backgroundColor: theme.vars.palette.action.hover,
-        },
-        '&.Mui-focusVisible': {
-          backgroundColor: theme.vars.palette.action.focus,
         },
         '&.Mui-disabled': {
           backgroundColor: 'transparent',
@@ -112,10 +102,6 @@ export const buttonOverrides = {
         '&:hover': {
           backgroundColor: theme.vars.palette.primary.dark,
         },
-        '&.Mui-focusVisible': {
-          backgroundColor: theme.vars.palette.primary.main,
-          outline: `2px solid ${theme.vars.palette.primary.light}`,
-        },
         '&:active': {
           backgroundColor: theme.vars.palette.primary.dark,
         },
@@ -131,10 +117,6 @@ export const buttonOverrides = {
         borderRadius: '50%',
         '&:hover': {
           backgroundColor: theme.vars.palette.error.dark,
-        },
-        '&.Mui-focusVisible': {
-          backgroundColor: theme.vars.palette.error.main,
-          outline: `2px solid ${theme.vars.palette.error.light}`,
         },
         '&:active': {
           backgroundColor: theme.vars.palette.error.dark,

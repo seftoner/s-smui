@@ -63,16 +63,16 @@ export const lightPalette = {
     
   action: {
     active: 'rgba(14, 15, 18, 0.6)',
-    activatedOpacity: 0.60,
+    activatedOpacity: 0.20,
     hover: 'rgba(14, 15, 18, 0.05)',
     hoverOpacity: 0.05,
-    selected: 'rgba(14, 15, 18, 0.15)',
-    selectedOpacity: 0.15,
+    selected: 'rgba(14, 15, 18, 0.08)',
+    selectedOpacity: 0.08,
     disabled: 'rgba(14, 15, 18, 0.38)',
     disabledOpacity: 0.38,
     disabledBackground: '#0e0f121a',
     focus: 'rgba(14, 15, 18, 0.2)',
-    focusOpacity: 0.20,
+    focusOpacity: 0.15,
   },
   
   // Component-specific colors from Figma tokens
