@@ -7,10 +7,12 @@ export { FilterList } from './FilterList';
 export { OperatorChip } from './OperatorChip';
 export { FilterAutocomplete } from './FilterAutocomplete';
 export { FilterAutocompleteV2 } from './FilterAutocompleteV2';
+export { MultiValueLogicSelector } from './MultiValueLogicSelector';
+export { MultiTextInput } from './MultiTextInput';
+export { DateRangeInput } from './DateRangeInput';
 export * from './types';
 export * from './filterConfigService';
 export * from './filterPanelMachine';
 export * from './filterUtils';
 export * from './operatorIcons';
 export * from './linkedFilterService';
-    

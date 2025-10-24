@@ -31,8 +31,8 @@ const filterDefinitions: FilterDefinition[] = [
         name: 'Sub-Country',
         valueType: 'multi-select',
         operators: [
-            { id: 'in', label: 'In' },
-            { id: 'not-in', label: 'Not in' },
+            { id: 'equals', label: 'Equals' },
+            { id: 'not-equals', label: 'Not Equals' },
         ],
         options: [
             // UAE
@@ -60,10 +60,10 @@ const filterDefinitions: FilterDefinition[] = [
     {
         id: 'nationality',
         name: 'Nationality',
-        valueType: 'single-select',
+        valueType: 'multi-select',
         operators: [
-            { id: 'equals', label: 'Is' },
-            { id: 'not-equals', label: 'Is not' },
+            { id: 'equals', label: 'Equals' },
+            { id: 'not-equals', label: 'Not Equals' },
         ],
         options: [
             { id: 'us', label: 'United States' },
@@ -79,23 +79,36 @@ const filterDefinitions: FilterDefinition[] = [
     {
         id: 'name',
         name: 'Name',
-        valueType: 'text',
+        valueType: 'multi-text',
         operators: [
+            { id: 'contains', label: 'Contains' },
+            { id: 'not-contains', label: 'Not contains' },
             { id: 'equals', label: 'Equals' },
             { id: 'not-equals', label: 'Not equals' },
-            { id: 'contains', label: 'Contains' },
             { id: 'starts-with', label: 'Starts with' },
             { id: 'ends-with', label: 'Ends with' },
         ],
         placeholder: 'Enter name...',
     },
     {
+        id: 'email',
+        name: 'Email',
+        valueType: 'text',
+        operators: [
+            { id: 'contains', label: 'Contains' },
+            { id: 'not-contains', label: 'Not contains' },
+            { id: 'equals', label: 'Equals' },
+            { id: 'not-equals', label: 'Not equals' },
+        ],
+        placeholder: 'Enter email...',
+    },
+    {
         id: 'status',
         name: 'Status',
         valueType: 'multi-select',
         operators: [
-            { id: 'in', label: 'In' },
-            { id: 'not-in', label: 'Not in' },
+            { id: 'equals', label: 'Equals' },
+            { id: 'not-equals', label: 'Not Equals' },
         ],
         options: [
             { id: 'active', label: 'Active' },
@@ -107,7 +120,7 @@ const filterDefinitions: FilterDefinition[] = [
     {
         id: 'age',
         name: 'Age',
-        valueType: 'text',
+        valueType: 'numeric',
         operators: [
             { id: 'equals', label: 'Equals' },
             { id: 'not-equals', label: 'Not equals' },
@@ -115,14 +128,64 @@ const filterDefinitions: FilterDefinition[] = [
             { id: 'less-than', label: 'Less than' },
         ],
         placeholder: 'Enter age...',
+        min: 0,
+        max: 120,
+        step: 1,
+    },
+    {
+        id: 'salary',
+        name: 'Salary',
+        valueType: 'numeric',
+        operators: [
+            { id: 'equals', label: 'Equals' },
+            { id: 'greater-than', label: 'Greater than' },
+            { id: 'less-than', label: 'Less than' },
+        ],
+        placeholder: 'Enter salary...',
+        min: 0,
+        step: 1000,
+    },
+    {
+        id: 'is-verified',
+        name: 'Is Verified',
+        valueType: 'boolean',
+        operators: [
+            { id: 'equals', label: 'Is' },
+        ],
+    },
+    {
+        id: 'is-active',
+        name: 'Is Active',
+        valueType: 'boolean',
+        operators: [
+            { id: 'equals', label: 'Is' },
+        ],
+    },
+    {
+        id: 'registration-date',
+        name: 'Registration Date',
+        valueType: 'date-range',
+        operators: [
+            { id: 'between', label: 'Between' },
+        ],
+        placeholder: 'Select date range',
+    },
+    {
+        id: 'last-login',
+        name: 'Last Login',
+        valueType: 'date-range',
+        operators: [
+            { id: 'between', label: 'Between' },
+        ],
+        placeholder: 'Select date range',
     },
     {
         id: 'category',
         name: 'Category',
         valueType: 'multi-select',
         operators: [
-            { id: 'in', label: 'In' },
-            { id: 'not-in', label: 'Not in' },
+            { id: 'equals', label: 'Equals' },
+            { id: 'not-equals', label: 'Not Equals' },
         ],
         options: [
             { id: 'electronics', label: 'Electronics' },

@@ -17,10 +17,13 @@ import {
     TrashIcon,
     EyeSlashIcon
 } from '@phosphor-icons/react';
-import type { ActiveFilter, FilterDefinition } from './types';
+import type { ActiveFilter, FilterDefinition, DateRangeValue } from './types';
 import { getFilterDefinition } from './filterConfigService';
 import { FilterSelect } from './FilterSelect';
 import { FilterAutocompleteV2 } from './FilterAutocompleteV2';
+import { MultiTextInput } from './MultiTextInput';
+import { DateRangeInput } from './DateRangeInput';
+import { MultiValueLogicSelector } from './MultiValueLogicSelector';
 import { getOperatorIcon } from './operatorIcons';
 
 interface FilterInputProps {
@@ -80,10 +83,25 @@ export const FilterInput: React.FC<FilterInputProps> = ({
 
         const newFilterDef = newValue;
         const defaultOperator = newFilterDef.operators[0];
-        let defaultValue: string | string[] = '';
+        let defaultValue: string | string[] | boolean | number | DateRangeValue = '';
 
-        if (newFilterDef.valueType === 'multi-select') {
-            defaultValue = [];
+        // Set appropriate default value based on value type
+        switch (newFilterDef.valueType) {
+            case 'multi-select':
+            case 'multi-text':
+                defaultValue = [];
+                break;
+            case 'boolean':
+                defaultValue = false;
+                break;
+            case 'numeric':
+                defaultValue = 0;
+                break;
+            case 'date-range':
+                defaultValue = { from: null, to: null };
+                break;
+            default:
+                defaultValue = '';
         }
 
         const updatedFilter: ActiveFilter = {
@@ -91,6 +109,9 @@ export const FilterInput: React.FC<FilterInputProps> = ({
             filterId: newFilterDef.id,
             operator: defaultOperator.id,
             value: defaultValue,
+            valueLogicOperator: (newFilterDef.valueType === 'multi-select' || newFilterDef.valueType === 'multi-text')
+                ? 'and'
+                : undefined,
         };
 
         if (onFilterTypeChange) {
@@ -282,6 +303,112 @@ export const FilterInput: React.FC<FilterInputProps> = ({
                                 }}
                             />
                         </Box>
+                    ) : filterDef?.valueType === 'multi-text' ? (
+                        <MultiTextInput
+                            values={Array.isArray(filter.value) ? filter.value : []}
+                            logicOperator={filter.valueLogicOperator || 'and'}
+                            placeholder={filterDef.placeholder || 'Enter value...'}
+                            disabled={!filter.enabled || !isLinkedEnabled}
+                            onChange={(values) => {
+                                onChange({
+                                    ...filter,
+                                    value: values,
+                                });
+                            }}
+                            onLogicOperatorChange={(operator) => {
+                                onChange({
+                                    ...filter,
+                                    valueLogicOperator: operator,
+                                });
+                            }}
+                        />
+                    ) : filterDef?.valueType === 'numeric' ? (
+                        <Box
+                            sx={{
+                                flex: 1.6,
+                                display: 'flex',
+                                alignItems: 'center',
+                                px: 2,
+                                py: 1,
+                                '&:hover': filter.enabled ? {
+                                    bgcolor: 'action.hover',
+                                } : {},
+                            }}
+                        >
+                            <TextField
+                                fullWidth
+                                size="small"
+                                variant="standard"
+                                type="number"
+                                placeholder={filterDef.placeholder || 'Enter number...'}
+                                value={typeof filter.value === 'number' ? filter.value : ''}
+                                onChange={(e) => {
+                                    const numValue = parseFloat(e.target.value);
+                                    onChange({
+                                        ...filter,
+                                        value: isNaN(numValue) ? 0 : numValue,
+                                    });
+                                }}
+                                disabled={!filter.enabled || !isLinkedEnabled}
+                                autoComplete="off"
+                                slotProps={{
+                                    input: {
+                                        disableUnderline: true,
+                                        inputProps: {
+                                            min: filterDef.min,
+                                            max: filterDef.max,
+                                            step: filterDef.step,
+                                        },
+                                    },
+                                }}
+                            />
+                        </Box>
+                    ) : filterDef?.valueType === 'boolean' ? (
+                        <Box
+                            sx={{
+                                flex: 1.6,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                px: 2,
+                                py: 1,
+                            }}
+                        >
+                            <FilterSelect
+                                value={typeof filter.value === 'boolean' ? (filter.value ? 'true' : 'false') : 'false'}
+                                onChange={(e) => {
+                                    onChange({
+                                        ...filter,
+                                        value: e.target.value === 'true',
+                                    });
+                                }}
+                                disabled={!filter.enabled || !isLinkedEnabled}
+                                sx={{ flex: 1 }}
+                            >
+                                <MenuItem value="true">True</MenuItem>
+                                <MenuItem value="false">False</MenuItem>
+                            </FilterSelect>
+                        </Box>
+                    ) : filterDef?.valueType === 'date-range' ? (
+                        <DateRangeInput
+                            value={
+                                filter.value &&
+                                    typeof filter.value === 'object' &&
+                                    'from' in filter.value &&
+                                    'to' in filter.value
+                                    ? filter.value as DateRangeValue
+                                    : { from: null, to: null }
+                            }
+                            placeholder={filterDef.placeholder}
+                            minDate={filterDef.minDate}
+                            maxDate={filterDef.maxDate}
+                            onChange={(value) => {
+                                onChange({
+                                    ...filter,
+                                    value,
+                                });
+                            }}
+                        />
                     ) : filterDef?.valueType === 'single-select' || filterDef?.valueType === 'multi-select' ? (
                         <FilterSelect
                             multiple={filterDef.valueType === 'multi-select'}
@@ -330,15 +457,26 @@ export const FilterInput: React.FC<FilterInputProps> = ({
                                             >
                                                 {firstOption?.label}
                                             </Typography>
-                                            {values.length > 1 && (
-                                                <Chip
-                                                    label={`+${values.length - 1}`}
-                                                    size="small"
-                                                    sx={{
-                                                        height: 20,
-                                                        fontSize: '0.75rem',
-                                                    }}
-                                                />
+                                            {values.length >= 2 && (
+                                                <>
+                                                    <Chip
+                                                        label={(filter.valueLogicOperator || 'AND').toUpperCase()}
+                                                        size="small"
+                                                        variant="outlined"
+                                                        sx={{
+                                                            height: 24,
+                                                            fontSize: '0.75rem',
+                                                        }}
+                                                    />
+                                                    <Chip
+                                                        label={`+${values.length - 1}`}
+                                                        size="small"
+                                                        sx={{
+                                                            height: 20,
+                                                            fontSize: '0.75rem',
+                                                        }}
+                                                    />
+                                                </>
                                             )}
                                         </Box>
                                     );
@@ -359,6 +497,33 @@ export const FilterInput: React.FC<FilterInputProps> = ({
                                 );
                             }}
                             sx={{ flex: 1.6 }}
+                            // Add custom MenuProps to include AND/OR selector
+                            MenuProps={{
+                                PaperProps: {
+                                    children: filterDef.valueType === 'multi-select' &&
+                                        Array.isArray(filter.value) &&
+                                        filter.value.length >= 2 ? (
+                                        <>
+                                            <Box sx={{
+                                                borderBottom: '1px solid',
+                                                borderColor: 'divider',
+                                                py: 1,
+                                            }}>
+                                                <MultiValueLogicSelector
+                                                    value={filter.valueLogicOperator || 'and'}
+                                                    onChange={(operator: import('./types').ValueLogicOperator) => {
+                                                        onChange({
+                                                            ...filter,
+                                                            valueLogicOperator: operator,
+                                                        });
+                                                    }}
+                                                    disabled={!filter.enabled || !isLinkedEnabled}
+                                                />
+                                            </Box>
+                                        </>
+                                    ) : null,
+                                },
+                            }}
                         >
                             {filterDef?.options?.map((option) => {
                                 if (filterDef.valueType === 'multi-select') {

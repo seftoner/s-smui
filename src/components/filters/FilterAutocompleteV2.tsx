@@ -1,6 +1,9 @@
-import { styled, Autocomplete, InputBase, Chip } from '@mui/material';
+import React from 'react';
+import { styled, Autocomplete, InputBase, Chip, Box } from '@mui/material';
 import type { AutocompleteProps, AutocompleteRenderInputParams } from '@mui/material';
 import { CaretDownIcon, XIcon } from '@phosphor-icons/react';
+import { MultiValueLogicSelector } from './MultiValueLogicSelector';
+import type { ValueLogicOperator } from './types';
 
 const StyledAutocomplete = styled(Autocomplete)(({ theme }) => ({
     padding: theme.spacing(0, 2, 0, 1),
@@ -63,12 +66,17 @@ interface FilterAutocompleteV2Props<
     'renderInput'
 > {
     placeholder?: string;
+    // Multi-value logic operator support
+    showLogicSelector?: boolean;
+    logicOperator?: ValueLogicOperator;
+    onLogicOperatorChange?: (operator: ValueLogicOperator) => void;
 }
 
 /**
  * FilterAutocompleteV2 - Uses MUI Autocomplete with custom styling
  * Matches FilterInput design with proper chip display for multiple selection
  * Shows chips with limit indicator (+N) similar to FilterSelect
+ * Supports AND/OR logic selector for multi-select mode
  */
 export const FilterAutocompleteV2 = <
     T,
@@ -78,6 +86,9 @@ export const FilterAutocompleteV2 = <
 >({
     placeholder,
     limitTags = -1,
+    showLogicSelector = false,
+    logicOperator = 'and',
+    onLogicOperatorChange,
     ...props
 }: FilterAutocompleteV2Props<T, Multiple, DisableClearable, FreeSolo>) => {
     const renderInput = (params: AutocompleteRenderInputParams) => {
@@ -138,6 +149,35 @@ export const FilterAutocompleteV2 = <
         );
     };
 
+    // Custom ListboxComponent to add AND/OR selector at the top
+    const CustomListbox = React.forwardRef<
+        HTMLDivElement,
+        React.HTMLAttributes<HTMLElement>
+    >(function CustomListbox(listboxProps, ref) {
+        const { children, ...other } = listboxProps;
+
+        // Check if we should show logic selector based on outer component props
+        const shouldShowSelector =
+            showLogicSelector &&
+            props.multiple &&
+            Array.isArray(props.value) &&
+            props.value.length >= 2;
+
+        return (
+            <Box ref={ref} {...other}>
+                {/* Show AND/OR selector only for multi-select with 2+ values */}
+                {shouldShowSelector && onLogicOperatorChange && (
+                    <MultiValueLogicSelector
+                        value={logicOperator}
+                        onChange={onLogicOperatorChange}
+                        disabled={props.disabled}
+                    />
+                )}
+                {children}
+            </Box>
+        );
+    });
+
     return (
         <StyledAutocomplete
             {...props}
@@ -146,6 +186,7 @@ export const FilterAutocompleteV2 = <
             popupIcon={<CaretDownIcon />}
             clearIcon={<XIcon />}
             renderInput={renderInput}
+            ListboxComponent={showLogicSelector ? CustomListbox as any : undefined}
         />
     );
 };

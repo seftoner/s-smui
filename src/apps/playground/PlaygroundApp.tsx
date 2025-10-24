@@ -26,7 +26,6 @@ import {
     ListItemIcon,
     Divider,
     LinearProgress,
-    CircularProgress,
     Accordion,
     AccordionSummary,
     AccordionDetails,
@@ -52,7 +51,6 @@ import {
     Radio,
     RadioGroup,
     Autocomplete,
-    useTheme,
 } from '@mui/material';
 import { useThemeMode } from '../../contexts';
 import { FileAttachment } from '../../components/shared';
