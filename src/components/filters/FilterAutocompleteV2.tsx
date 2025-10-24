@@ -91,6 +91,14 @@ export const FilterAutocompleteV2 = <
     onLogicOperatorChange,
     ...props
 }: FilterAutocompleteV2Props<T, Multiple, DisableClearable, FreeSolo>) => {
+    const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        if (event.key === 'Enter') {
+            // Blur the input to close the autocomplete
+            const target = event.target as HTMLInputElement;
+            target.blur();
+        }
+    };
+
     const renderInput = (params: AutocompleteRenderInputParams) => {
         const { InputLabelProps, InputProps, ...rest } = params;
 
@@ -145,6 +153,7 @@ export const FilterAutocompleteV2 = <
                 placeholder={placeholder}
                 startAdornment={displayContent}
                 endAdornment={InputProps.endAdornment}
+                onKeyDown={handleKeyDown}
             />
         );
     };
