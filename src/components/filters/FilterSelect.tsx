@@ -1,6 +1,5 @@
 import { Select, styled } from '@mui/material';
 import type { SelectProps } from '@mui/material';
-import { height, width } from '@mui/system';
 import { CaretDownIcon } from '@phosphor-icons/react';
 
 /**

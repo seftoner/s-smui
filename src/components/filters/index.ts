@@ -5,9 +5,12 @@ export { FilterOperator } from './FilterOperator';
 export { FilterEmptyState } from './FilterEmptyState';
 export { FilterList } from './FilterList';
 export { OperatorChip } from './OperatorChip';
+export { FilterAutocomplete } from './FilterAutocomplete';
+export { FilterAutocompleteV2 } from './FilterAutocompleteV2';
 export * from './types';
 export * from './filterConfigService';
 export * from './filterPanelMachine';
 export * from './filterUtils';
 export * from './operatorIcons';
 export * from './linkedFilterService';
+    

@@ -20,6 +20,7 @@ import {
 import type { ActiveFilter, FilterDefinition } from './types';
 import { getFilterDefinition } from './filterConfigService';
 import { FilterSelect } from './FilterSelect';
+import { FilterAutocompleteV2 } from './FilterAutocompleteV2';
 import { getOperatorIcon } from './operatorIcons';
 
 interface FilterInputProps {
@@ -73,12 +74,11 @@ export const FilterInput: React.FC<FilterInputProps> = ({
         return () => document.removeEventListener('click', handleMenuClose);
     }, []);
 
-    // Handle filter name change
-    const handleFilterNameChange = (event: any) => {
-        const newFilterId = event.target.value as string;
-        const newFilterDef = getFilterDefinition(newFilterId);
-        if (!newFilterDef) return;
+    // Handle filter type change
+    const handleFilterTypeChange = (newValue: FilterDefinition | null) => {
+        if (!newValue) return;
 
+        const newFilterDef = newValue;
         const defaultOperator = newFilterDef.operators[0];
         let defaultValue: string | string[] = '';
 
@@ -88,14 +88,14 @@ export const FilterInput: React.FC<FilterInputProps> = ({
 
         const updatedFilter: ActiveFilter = {
             ...filter,
-            filterId: newFilterId,
+            filterId: newFilterDef.id,
             operator: defaultOperator.id,
             value: defaultValue,
         };
 
         if (onFilterTypeChange) {
             const oldFilterId = filter.filterId || '';
-            onFilterTypeChange(oldFilterId, newFilterId);
+            onFilterTypeChange(oldFilterId, newFilterDef.id);
         }
 
         onChange(updatedFilter);
@@ -173,23 +173,16 @@ export const FilterInput: React.FC<FilterInputProps> = ({
                         </Typography>
                     </Box>
                 ) : (
-                    <FilterSelect
-                        value={filter.filterId || ''}
-                        onChange={handleFilterNameChange}
+                    <FilterAutocompleteV2
+                        value={availableFilters.find(f => f.id === filter.filterId) || null}
+                        onChange={(_, newValue) => handleFilterTypeChange(newValue as FilterDefinition | null)}
+                        options={availableFilters}
+                        getOptionLabel={(option) => option.name}
                         disabled={!filter.enabled || !isLinkedEnabled}
-                        displayEmpty
-                        renderValue={() => (
-                            <Typography variant="body1" color={isEmptyFilter ? 'text.disabled' : 'text.primary'}>
-                                {isEmptyFilter ? 'Select filter type' : filterDef?.name}
-                            </Typography>
-                        )}
-                    >
-                        {availableFilters.map((filterOption) => (
-                            <MenuItem key={filterOption.id} value={filterOption.id}>
-                                {filterOption.name}
-                            </MenuItem>
-                        ))}
-                    </FilterSelect>
+                        placeholder={isEmptyFilter ? 'Select filter type' : ''}
+                        // autoFocus
+                        autoHighlight
+                    />
                 )}
 
                 {/* Divider */}
