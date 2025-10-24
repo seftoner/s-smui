@@ -1,17 +1,17 @@
 import React from 'react';
 import { Box, IconButton, Tooltip } from '@mui/material';
-import { HouseIcon, MagnifyingGlassIcon, ClipboardTextIcon, FileIcon, ChartBarIcon, ChatCircleIcon, DotsNineIcon, PaletteIcon } from '@phosphor-icons/react';
+import { MagnifyingGlassIcon, ChatCircleIcon, PaletteIcon } from '@phosphor-icons/react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 const navigationItems = [
-    { text: 'Home', icon: <HouseIcon size={24} />, path: '/' },
+    // { text: 'Home', icon: <HouseIcon size={24} />, path: '/' },
     { text: 'Search', icon: <MagnifyingGlassIcon size={24} />, path: '/search' },
-    { text: 'Task Management', icon: <ClipboardTextIcon size={24} />, path: '/tasks' },
-    { text: 'Documents', icon: <FileIcon size={24} />, path: '/documents' },
-    { text: 'Variation Centre', icon: <ChartBarIcon size={24} />, path: '/variation' },
+    // { text: 'Task Management', icon: <ClipboardTextIcon size={24} />, path: '/tasks' },
+    // { text: 'Documents', icon: <FileIcon size={24} />, path: '/documents' },
+    // { text: 'Variation Centre', icon: <ChartBarIcon size={24} />, path: '/variation' },
     { text: 'AI Chat', icon: <ChatCircleIcon size={24} />, path: '/chat' },
-    { text: 'UI Playground', icon: <PaletteIcon size={24} />, path: '/playground' },
-    { text: 'More Apps', icon: <DotsNineIcon size={24} />, path: '/more-apps' },
+    { text: 'UI Playground', icon: <PaletteIcon size={24} />, path: '/' },
+    // { text: 'More Apps', icon: <DotsNineIcon size={24} />, path: '/more-apps' },
 ];
 
 export const NavigationItems: React.FC = () => {
