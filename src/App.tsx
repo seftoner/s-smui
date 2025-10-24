@@ -27,7 +27,7 @@ function App() {
   return (
     <CacheProvider value={cacheRtl}>
       <ThemeModeProvider>
-        <Router>
+        <Router basename="/s-smui">
           <AppThemeProvider>
             <NotificationProvider>
               <Layout>
