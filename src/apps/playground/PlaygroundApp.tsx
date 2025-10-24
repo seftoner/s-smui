@@ -51,6 +51,7 @@ import {
     Checkbox,
     Radio,
     RadioGroup,
+    Autocomplete,
     useTheme,
 } from '@mui/material';
 import { useThemeMode } from '../../contexts';
@@ -76,8 +77,22 @@ export const PlaygroundApp: React.FC = () => {
     const [dialogOpen, setDialogOpen] = useState(false);
     const [snackbarOpen, setSnackbarOpen] = useState(false);
     const [selectedListItem, setSelectedListItem] = useState('home');
+    const [autocompleteValue, setAutocompleteValue] = useState<string | null>(null);
+    const [autocompleteMultiValue, setAutocompleteMultiValue] = useState<string[]>([]);
     const { mode, setMode } = useThemeMode();
     const isDarkMode = mode === 'dark';
+
+    const autocompleteOptions = [
+        'Option 1',
+        'Option 2',
+        'Option 3',
+        'Option 4',
+        'Option 5',
+        'The quick brown fox',
+        'Jumps over the lazy dog',
+        'Lorem ipsum dolor sit amet',
+        'Consectetur adipiscing elit',
+    ];
 
     const handleThemeToggle = () => {
         const next = isDarkMode ? 'light' : 'dark';
@@ -282,6 +297,47 @@ export const PlaygroundApp: React.FC = () => {
                                     <FormControlLabel value="option1" control={<Radio />} label="Option 1" />
                                     <FormControlLabel value="option2" control={<Radio />} label="Option 2" />
                                 </RadioGroup>
+
+                                <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>Autocomplete</Typography>
+                                <Autocomplete
+                                    options={autocompleteOptions}
+                                    value={autocompleteValue}
+                                    onChange={(_, newValue) => setAutocompleteValue(newValue)}
+                                    renderInput={(params) => (
+                                        <TextField
+                                            {...params}
+                                            label="Single Select"
+                                            placeholder="Search and select..."
+                                        />
+                                    )}
+                                />
+
+                                <Autocomplete
+                                    multiple
+                                    options={autocompleteOptions}
+                                    value={autocompleteMultiValue}
+                                    onChange={(_, newValue) => setAutocompleteMultiValue(newValue)}
+                                    renderInput={(params) => (
+                                        <TextField
+                                            {...params}
+                                            label="Multiple Select"
+                                            placeholder="Search and select multiple..."
+                                        />
+                                    )}
+                                    limitTags={2}
+                                />
+
+                                <Autocomplete
+                                    freeSolo
+                                    options={autocompleteOptions}
+                                    renderInput={(params) => (
+                                        <TextField
+                                            {...params}
+                                            label="Free Solo (Type anything)"
+                                            placeholder="Type or select..."
+                                        />
+                                    )}
+                                />
                             </Box>
                         </ComponentSection>
                     </Box>
