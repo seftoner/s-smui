@@ -124,4 +124,21 @@ export const buttonOverrides = {
       }),
     },
   },
+  MuiToggleButtonGroup: {
+    styleOverrides: {
+      root: {
+        gap: 0,
+      },
+      grouped: {
+        '&:first-of-type': {
+          borderTopLeftRadius: '8px !important',
+          borderBottomLeftRadius: '8px !important',
+        },
+        '&:last-of-type': {
+          borderTopRightRadius: '8px !important',
+          borderBottomRightRadius: '8px !important',
+        },
+      },
+    },
+  },
 };

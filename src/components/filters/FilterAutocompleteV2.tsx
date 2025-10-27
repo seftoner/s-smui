@@ -179,7 +179,6 @@ export const FilterAutocompleteV2 = <
                     <MultiValueLogicSelector
                         value={logicOperator}
                         onChange={onLogicOperatorChange}
-                        disabled={props.disabled}
                     />
                 )}
                 {children}

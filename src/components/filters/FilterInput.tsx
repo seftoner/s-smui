@@ -309,6 +309,7 @@ export const FilterInput: React.FC<FilterInputProps> = ({
                             logicOperator={filter.valueLogicOperator || 'and'}
                             placeholder={filterDef.placeholder || 'Enter value...'}
                             disabled={!filter.enabled || !isLinkedEnabled}
+                            sx={{ flex: 1.6 }}
                             onChange={(values) => {
                                 onChange({
                                     ...filter,
@@ -517,7 +518,6 @@ export const FilterInput: React.FC<FilterInputProps> = ({
                                                             valueLogicOperator: operator,
                                                         });
                                                     }}
-                                                    disabled={!filter.enabled || !isLinkedEnabled}
                                                 />
                                             </Box>
                                         </>

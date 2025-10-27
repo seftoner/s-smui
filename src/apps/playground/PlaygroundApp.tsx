@@ -54,6 +54,8 @@ import {
 } from '@mui/material';
 import { useThemeMode } from '../../contexts';
 import { FileAttachment } from '../../components/shared';
+import { MultiValueLogicSelector } from '../../components/filters';
+import type { ValueLogicOperator } from '../../components/filters/types';
 import {
     Home,
     Settings,
@@ -77,6 +79,7 @@ export const PlaygroundApp: React.FC = () => {
     const [selectedListItem, setSelectedListItem] = useState('home');
     const [autocompleteValue, setAutocompleteValue] = useState<string | null>(null);
     const [autocompleteMultiValue, setAutocompleteMultiValue] = useState<string[]>([]);
+    const [logicOperator, setLogicOperator] = useState<ValueLogicOperator>('and');
     const { mode, setMode } = useThemeMode();
     const isDarkMode = mode === 'dark';
 
@@ -506,6 +509,12 @@ export const PlaygroundApp: React.FC = () => {
                                 </Box>
 
                                 <Box>
+                                    <Typography gutterBottom>Multi Value Logic Selector</Typography>
+                                    <MultiValueLogicSelector
+                                        value={logicOperator}
+                                        onChange={setLogicOperator}
+                                    />
+                                </Box>                                <Box>
                                     <Typography gutterBottom>Badges</Typography>
                                     <Box sx={{ display: 'flex', gap: 2 }}>
                                         <Badge badgeContent={4} color="primary">

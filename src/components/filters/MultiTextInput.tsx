@@ -10,31 +10,28 @@ import {
     InputAdornment,
     styled,
 } from '@mui/material';
+import type { SxProps, Theme } from '@mui/material';
 import { PlusIcon, XIcon } from '@phosphor-icons/react';
 import { MultiValueLogicSelector } from './MultiValueLogicSelector';
 import type { ValueLogicOperator } from './types';
 
 
 const MenuPaper = styled(Paper)(({ theme }) => ({
-    marginTop: theme.spacing(0.5),
-    borderRadius: 12,
+    borderRadius: 8,
     border: `1px solid ${theme.palette.divider}`,
     boxShadow: theme.shadows[4],
     minWidth: 300,
     maxHeight: 400,
     overflow: 'auto',
+    padding: theme.spacing(2, 4, 2, 2),
 }));
 
 const ValueItem = styled(Box)(({ theme }) => ({
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: theme.spacing(1, 2),
+    padding: theme.spacing(1, 0),
     gap: theme.spacing(1),
-    borderBottom: `1px solid ${theme.palette.divider}`,
-    '&:hover': {
-        backgroundColor: theme.palette.action.hover,
-    },
 }));
 
 const CollapsedDisplay = styled(Box)(({ theme }) => ({
@@ -61,6 +58,7 @@ interface MultiTextInputProps {
     logicOperator: ValueLogicOperator;
     placeholder?: string;
     disabled?: boolean;
+    sx?: SxProps<Theme>;
     onChange: (values: string[]) => void;
     onLogicOperatorChange: (operator: ValueLogicOperator) => void;
 }
@@ -78,15 +76,15 @@ export const MultiTextInput: React.FC<MultiTextInputProps> = ({
     logicOperator,
     placeholder = 'Enter value...',
     disabled = false,
+    sx,
     onChange,
     onLogicOperatorChange,
 }) => {
     const [inputValue, setInputValue] = useState('');
     const [isFocused, setIsFocused] = useState(false);
-    const [editingIndex, setEditingIndex] = useState<number | null>(null);
-    const [editingValue, setEditingValue] = useState('');
     const inputRef = useRef<HTMLDivElement>(null);
     const anchorRef = useRef<HTMLDivElement>(null);
+    const popperRef = useRef<HTMLDivElement>(null);
 
     const handleAddValue = () => {
         if (inputValue.trim()) {
@@ -99,6 +97,10 @@ export const MultiTextInput: React.FC<MultiTextInputProps> = ({
         if (event.key === 'Enter') {
             event.preventDefault();
             handleAddValue();
+        } else if (event.key === 'Escape') {
+            event.preventDefault();
+            setIsFocused(false);
+            setInputValue('');
         }
     };
 
@@ -106,29 +108,10 @@ export const MultiTextInput: React.FC<MultiTextInputProps> = ({
         onChange(values.filter((_, i) => i !== index));
     };
 
-    const handleEditValue = (index: number) => {
-        setEditingIndex(index);
-        setEditingValue(values[index]);
-    };
-
-    const handleSaveEdit = (index: number) => {
-        if (editingValue.trim()) {
-            const newValues = [...values];
-            newValues[index] = editingValue.trim();
-            onChange(newValues);
-        }
-        setEditingIndex(null);
-        setEditingValue('');
-    };
-
-    const handleEditKeyDown = (event: React.KeyboardEvent, index: number) => {
-        if (event.key === 'Enter') {
-            event.preventDefault();
-            handleSaveEdit(index);
-        } else if (event.key === 'Escape') {
-            setEditingIndex(null);
-            setEditingValue('');
-        }
+    const handleUpdateValue = (index: number, newValue: string) => {
+        const newValues = [...values];
+        newValues[index] = newValue;
+        onChange(newValues);
     };
 
     const handleFocus = () => {
@@ -136,50 +119,98 @@ export const MultiTextInput: React.FC<MultiTextInputProps> = ({
     };
 
     const handleBlur = (event: React.FocusEvent) => {
-        // Check if focus is moving to an element within the popper
+        // Only close if focus is moving completely outside the component
+        const relatedTarget = event.relatedTarget as HTMLElement;
+
+        // Check if focus is staying within our component or popper
         if (
-            anchorRef.current?.contains(event.relatedTarget as Node) ||
-            (event.relatedTarget as HTMLElement)?.closest('[role="presentation"]')
+            anchorRef.current?.contains(relatedTarget) ||
+            popperRef.current?.contains(relatedTarget)
         ) {
             return;
         }
+
         setIsFocused(false);
-        setEditingIndex(null);
         setInputValue('');
     };
 
+    // Handle clicks outside the component to close the popup
+    React.useEffect(() => {
+        if (!isFocused) return;
+
+        const handleClickOutside = (event: MouseEvent) => {
+            const target = event.target as HTMLElement;
+
+            // Close if clicking outside both the anchor and popper
+            if (
+                anchorRef.current &&
+                !anchorRef.current.contains(target) &&
+                popperRef.current &&
+                !popperRef.current.contains(target)
+            ) {
+                setIsFocused(false);
+                setInputValue('');
+            }
+        };
+
+        // Add a small delay to avoid immediate closure
+        const timeoutId = setTimeout(() => {
+            document.addEventListener('mousedown', handleClickOutside);
+        }, 0);
+
+        return () => {
+            clearTimeout(timeoutId);
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [isFocused]);
+
     const handleCollapsedClick = () => {
-        inputRef.current?.querySelector('input')?.focus();
+        setIsFocused(true);
+        // Use setTimeout to ensure the input is rendered before focusing
+        setTimeout(() => {
+            inputRef.current?.querySelector('input')?.focus();
+        }, 0);
     };
 
     // Collapsed view when not focused and has values
     if (!isFocused && values.length > 0) {
         return (
-            <CollapsedDisplay ref={anchorRef} onClick={handleCollapsedClick}>
-                <Typography variant="body2" sx={{ flex: 1 }}>
-                    {values[0]}
-                </Typography>
-                {values.length > 1 && (
-                    <>
-                        <StyledChip
-                            label={logicOperator.toUpperCase()}
-                            size="small"
-                            color="default"
-                            variant="outlined"
-                        />
-                        <StyledChip
-                            label={`+${values.length - 1}`}
-                            size="small"
-                            color="default"
-                        />
-                    </>
-                )}
-            </CollapsedDisplay>
+            <Box sx={sx} ref={anchorRef}>
+                <CollapsedDisplay onClick={handleCollapsedClick}>
+                    <Typography
+                        variant="body2"
+                        sx={{
+                            flex: 1,
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                        }}
+                    >
+                        {values[0]}
+                    </Typography>
+                    {values.length > 1 && (
+                        <>
+                            <Typography
+                                variant='caption'
+                                color="text.secondary"
+                                sx={{ flexShrink: 0 }}
+                            >
+                                {logicOperator.toUpperCase()}
+                            </Typography>
+                            <StyledChip
+                                label={`+${values.length - 1}`}
+                                size="small"
+                                color="default"
+                            />
+                        </>
+                    )}
+                </CollapsedDisplay>
+            </Box>
         );
     }
 
     return (
-        <Box ref={anchorRef} sx={{ flex: 1 }}>
+        <Box ref={anchorRef} sx={sx}>
             <Box
                 sx={{
                     display: 'flex',
@@ -229,57 +260,64 @@ export const MultiTextInput: React.FC<MultiTextInputProps> = ({
                 placement="bottom-start"
                 style={{ width: anchorRef.current?.offsetWidth }}
             >
-                <MenuPaper>
+                <MenuPaper ref={popperRef}>
                     {values.length === 0 ? (
                         <Typography variant="body2" color='text.secondary'>Type text and press enter to add value</Typography>
                     ) : (
                         <>
                             {/* AND/OR selector - show only when 2+ values */}
                             {values.length >= 2 && (
-                                <MultiValueLogicSelector
-                                    value={logicOperator}
-                                    onChange={onLogicOperatorChange}
-                                    disabled={disabled}
-                                />
+                                <Box sx={{ pb: 3 }}>
+                                    <MultiValueLogicSelector
+                                        value={logicOperator}
+                                        onChange={onLogicOperatorChange}
+                                    />
+                                </Box>
                             )}
 
                             {/* Values list */}
                             {values.map((value, index) => (
                                 <ValueItem key={index}>
-                                    {editingIndex === index ? (
-                                        <TextField
-                                            fullWidth
-                                            size="small"
-                                            variant="standard"
-                                            value={editingValue}
-                                            onChange={(e) => setEditingValue(e.target.value)}
-                                            onKeyDown={(e) => handleEditKeyDown(e, index)}
-                                            onBlur={() => handleSaveEdit(index)}
-                                            autoFocus
-                                            slotProps={{
-                                                input: {
-                                                    disableUnderline: true,
-                                                },
-                                            }}
-                                        />
-                                    ) : (
-                                        <>
-                                            <Typography
-                                                variant="body2"
-                                                sx={{ flex: 1, cursor: 'pointer' }}
-                                                onClick={() => handleEditValue(index)}
-                                            >
-                                                {value}
-                                            </Typography>
-                                            <IconButton
-                                                size="small"
-                                                onClick={() => handleDeleteValue(index)}
-                                                sx={{ color: 'error.main' }}
-                                            >
-                                                <XIcon size={16} />
-                                            </IconButton>
-                                        </>
-                                    )}
+                                    <TextField
+                                        fullWidth
+                                        size="small"
+                                        variant="outlined"
+                                        value={value}
+                                        onChange={(e) => handleUpdateValue(index, e.target.value)}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter') {
+                                                e.preventDefault();
+                                                // Find the next TextField input
+                                                const allInputs = popperRef.current?.querySelectorAll('input');
+                                                if (allInputs) {
+                                                    const currentInput = e.target as HTMLInputElement;
+                                                    const currentIndex = Array.from(allInputs).indexOf(currentInput);
+                                                    const nextInput = allInputs[currentIndex + 1];
+                                                    if (nextInput) {
+                                                        nextInput.focus();
+                                                    }
+                                                }
+                                            }
+                                        }}
+                                        disabled={disabled}
+                                        sx={{
+                                            '& .MuiOutlinedInput-root': {
+                                                fontSize: '0.875rem',
+                                            },
+                                        }}
+                                    />
+                                    <IconButton
+                                        size="small"
+                                        onClick={() => handleDeleteValue(index)}
+                                        sx={{
+                                            color: 'error.main',
+                                            '&:hover': {
+                                                backgroundColor: 'error.lighter',
+                                            },
+                                        }}
+                                    >
+                                        <XIcon size={16} />
+                                    </IconButton>
                                 </ValueItem>
                             ))}
                         </>
