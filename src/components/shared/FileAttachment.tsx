@@ -7,7 +7,7 @@ import {
     CircularProgress,
     useTheme,
 } from '@mui/material';
-import { X } from '@phosphor-icons/react';
+import { XIcon } from '@phosphor-icons/react';
 import {
     ArchiveIcon,
     DocumentIcon,
@@ -158,6 +158,41 @@ function getFileExtension(fileName: string): string {
     return parts.length > 1 ? `.${parts[parts.length - 1]}` : '';
 }
 
+const RemoveButton: React.FC<{ onRemove: () => void; zIndex?: number }> = ({ onRemove, zIndex = 10 }) => {
+    const theme = useTheme();
+
+    return (
+        <Box
+            className="remove-button"
+            sx={{
+                position: 'absolute',
+                top: -8,
+                right: -10,
+                zIndex,
+                display: 'flex',
+                alignItems: 'center',
+                borderRadius: '100%',
+                backgroundColor: theme.vars.palette.background.default,
+            }}
+            aria-hidden={false}
+        >
+            <IconButton
+                size="small"
+                onClick={(e) => { e.stopPropagation(); onRemove(); }}
+                aria-label="Remove attachment"
+                sx={{
+                    width: 20,
+                    height: 20,
+                    borderRadius: '100%',
+                    border: `1px solid ${theme.vars.palette.divider}`,
+                }}
+            >
+                <XIcon size={12} />
+            </IconButton>
+        </Box>
+    );
+};
+
 /**
  * File attachment component for displaying uploaded files
  */
@@ -193,9 +228,9 @@ export const FileAttachment: React.FC<FileAttachmentProps> = ({
                     borderRadius: 4,
                     overflow: 'visible', // Changed from 'hidden' to allow button to show
                     cursor: 'pointer',
-                    '&:hover .remove-button': {
-                        opacity: 1,
-                    },
+                    // '&:hover .remove-button': {
+                    //     opacity: 1,
+                    // },
                 }}
             >
                 {/* Image Content Container - clips the image */}
@@ -288,11 +323,11 @@ export const FileAttachment: React.FC<FileAttachmentProps> = ({
                             zIndex: 100,
                             '&:hover': {
                                 backgroundColor: theme.vars.palette.action.hover,
-                                opacity: 1,
+                                // opacity: 1,
                             },
                         }}
                     >
-                        <X size={12} />
+                        <XIcon size={12} />
                     </IconButton>
                 )}
             </Box>
@@ -389,34 +424,7 @@ export const FileAttachment: React.FC<FileAttachmentProps> = ({
             </Box>
 
             {/* Remove Button */}
-            {onRemove && !uploading && (
-                <IconButton
-                    className="remove-button"
-                    size="small"
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        onRemove();
-                    }}
-                    sx={{
-                        position: 'absolute',
-                        top: -8,
-                        right: -8,
-                        width: 20,
-                        height: 20,
-                        backgroundColor: theme.vars.palette.background.default,
-                        border: `1px solid ${theme.vars.palette.divider}`,
-                        opacity: 0,
-                        transition: 'opacity 0.2s ease',
-                        zIndex: 10,
-                        '&:hover': {
-                            backgroundColor: theme.vars.palette.action.hover,
-                            opacity: 1,
-                        },
-                    }}
-                >
-                    <X size={12} />
-                </IconButton>
-            )}
+            {onRemove && !uploading && <RemoveButton onRemove={onRemove} zIndex={100} />}
         </Box>
     );
 };
