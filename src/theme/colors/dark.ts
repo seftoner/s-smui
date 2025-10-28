@@ -149,8 +149,9 @@ export const darkPalette = {
     tooltip: {
       fill: '#f7f7f7',
     },
-    backdrop: {
-      fill: '#00000080',
+     backdrop: {
+      default: 'rgba(30, 30, 30, 0.7)',
+      attachment: 'rgba(30, 30, 30, 0.80)',
     },
     appbar: {
       default: '#131416',

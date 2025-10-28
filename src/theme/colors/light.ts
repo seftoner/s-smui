@@ -156,7 +156,8 @@ export const lightPalette = {
       fill: '#3e4045',
     },
     backdrop: {
-      fill: '#00000080',
+      default: 'rgba(0, 0, 0, 0.5)',
+      attachment: 'rgba(255, 255, 255, 0.80)',
     },
     appbar: {
       default: '#e1e3e5',

@@ -51,6 +51,7 @@ import {
     Radio,
     RadioGroup,
     Autocomplete,
+    Modal,
 } from '@mui/material';
 import { useThemeMode } from '../../contexts';
 import { FileAttachment } from '../../components/shared';
@@ -82,6 +83,9 @@ export const PlaygroundApp: React.FC = () => {
     const [logicOperator, setLogicOperator] = useState<ValueLogicOperator>('and');
     const { mode, setMode } = useThemeMode();
     const isDarkMode = mode === 'dark';
+
+    // Modal example state
+    const [modalOpen, setModalOpen] = useState(false);
 
     const autocompleteOptions = [
         'Option 1',
@@ -674,6 +678,47 @@ export const PlaygroundApp: React.FC = () => {
                             onRemove={() => console.log('Remove text file')}
                         />
                     </Box>
+
+                    {/* Simple Modal Example */}
+                    <Typography variant="h6" gutterBottom>
+                        Simple Modal Example
+                    </Typography>
+                    <Button variant="outlined" onClick={() => setModalOpen(true)} sx={{ mb: 2 }}>
+                        Open Modal
+                    </Button>
+                    <Modal
+                        open={modalOpen}
+                        onClose={() => setModalOpen(false)}
+                        aria-labelledby="simple-modal-title"
+                        aria-describedby="simple-modal-description"
+                    >
+                        <Box
+                            sx={{
+                                position: 'absolute',
+                                top: '50%',
+                                left: '50%',
+                                transform: 'translate(-50%, -50%)',
+                                width: 340,
+                                bgcolor: 'background.paper',
+                                border: '2px solid',
+                                borderColor: 'divider',
+                                boxShadow: 24,
+                                p: 4,
+                                borderRadius: 2,
+                                outline: 'none',
+                            }}
+                        >
+                            <Typography id="simple-modal-title" variant="h6" component="h2" gutterBottom>
+                                Simple Modal Window
+                            </Typography>
+                            <Typography id="simple-modal-description" sx={{ mb: 2 }}>
+                                This is a basic modal window using MUI's Modal component. You can put any content here.
+                            </Typography>
+                            <Button variant="contained" onClick={() => setModalOpen(false)}>
+                                Close
+                            </Button>
+                        </Box>
+                    </Modal>
 
                     <Typography variant="h6" gutterBottom>
                         Code Files

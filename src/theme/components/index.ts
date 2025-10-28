@@ -5,6 +5,7 @@ import { inputOverrides } from './inputs';
 import { navigationOverrides } from './navigation';
 import { dataDisplayOverrides } from './dataDisplay';
 import { feedbackOverrides } from './feedback';
+import { backdropsOverrides } from './backdrops';
 
 // Export all component overrides
 export { buttonOverrides } from './buttons';
@@ -22,4 +23,5 @@ export const components = {
   ...navigationOverrides,
   ...dataDisplayOverrides,
   ...feedbackOverrides,
+  ...backdropsOverrides
 };
